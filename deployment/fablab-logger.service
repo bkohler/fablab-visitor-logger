@@ -1,0 +1,13 @@
+[Unit]
+Description=FabLab Visitor Logger
+After=network.target bluetooth.target
+
+[Service]
+User=bkohler
+WorkingDirectory=/home/bkohler/code/fablabvistors
+ExecStart=/home/bkohler/code/fablabvistors/run_fablab_logger.sh
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

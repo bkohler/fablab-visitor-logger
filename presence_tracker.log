@@ -1,0 +1,38 @@
+2025-03-27 11:31:42,292 - __main__ - INFO - Starting FabLab Presence Monitoring System
+2025-03-27 11:31:42,296 - scanner - ERROR - BLE scan failed: Failed to execute management command 'le on' (code: 20, error: Permission Denied)
+2025-03-27 11:31:42,296 - scanner - ERROR - Presence update failed: BLE scan failed: Failed to execute management command 'le on' (code: 20, error: Permission Denied)
+2025-03-27 11:31:42,296 - __main__ - ERROR - Error during scan: BLE scan failed: Failed to execute management command 'le on' (code: 20, error: Permission Denied)
+2025-03-27 11:32:07,974 - __main__ - INFO - Received signal 2, shutting down...
+2025-03-27 11:32:12,292 - __main__ - INFO - FabLab Presence Monitoring System stopped
+2025-03-27 11:38:33,395 - __main__ - INFO - Starting FabLab Presence Monitoring System
+2025-03-27 11:39:03,641 - __main__ - INFO - Scan complete, detected 19 devices
+2025-03-27 11:39:33,756 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:40:03,825 - __main__ - INFO - Scan complete, detected 19 devices
+2025-03-27 11:40:33,954 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:41:04,036 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:41:34,217 - __main__ - INFO - Scan complete, detected 17 devices
+2025-03-27 11:42:04,295 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:42:34,473 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:43:04,552 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:43:34,636 - __main__ - INFO - Scan complete, detected 21 devices
+2025-03-27 11:44:04,857 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:44:35,010 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:45:05,197 - __main__ - INFO - Scan complete, detected 24 devices
+2025-03-27 11:45:35,351 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:46:05,408 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:46:35,518 - __main__ - INFO - Scan complete, detected 17 devices
+2025-03-27 11:47:05,829 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:47:36,056 - __main__ - INFO - Scan complete, detected 17 devices
+2025-03-27 11:48:06,477 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:48:36,543 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:49:06,592 - __main__ - INFO - Scan complete, detected 15 devices
+2025-03-27 11:49:36,994 - __main__ - INFO - Scan complete, detected 19 devices
+2025-03-27 11:50:07,190 - __main__ - INFO - Scan complete, detected 20 devices
+2025-03-27 11:50:37,297 - __main__ - INFO - Scan complete, detected 19 devices
+2025-03-27 11:51:07,360 - __main__ - INFO - Scan complete, detected 21 devices
+2025-03-27 11:51:37,463 - __main__ - INFO - Scan complete, detected 19 devices
+2025-03-27 11:52:07,626 - __main__ - INFO - Scan complete, detected 23 devices
+2025-03-27 11:52:37,698 - __main__ - INFO - Scan complete, detected 18 devices
+2025-03-27 11:53:07,855 - __main__ - INFO - Scan complete, detected 17 devices
+2025-03-27 11:53:37,945 - __main__ - INFO - Scan complete, detected 17 devices
+2025-03-27 11:54:08,116 - __main__ - INFO - Scan complete, detected 19 devices
