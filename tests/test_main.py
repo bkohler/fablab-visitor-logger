@@ -72,7 +72,9 @@ class TestPresenceMonitoringApp:
         """Test application handles scan errors gracefully"""
         mock_tracker_instance = MagicMock()
         mock_tracker.return_value = mock_tracker_instance
-        mock_tracker_instance.update_presence.side_effect = Exception("Scan error")
+        mock_tracker_instance.update_presence.side_effect = Exception(
+            "Scan error"
+        )
         mock_scanner_instance = MagicMock()
         mock_scanner.return_value = mock_scanner_instance
         mock_scanner_instance.scan.side_effect = Exception("BLE scan failed")
@@ -143,7 +145,9 @@ class TestPresenceMonitoringApp:
         mock_parser.parse_args.return_value = mock_args
         mock_reporter_instance = MagicMock()
         mock_reporter.return_value = mock_reporter_instance
-        mock_reporter_instance.export_csv.side_effect = ValueError("Test error")
+        mock_reporter_instance.export_csv.side_effect = ValueError(
+            "Test error"
+        )
 
         # Run test
         with patch("__main__.__name__", "__main__"):

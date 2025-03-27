@@ -39,7 +39,9 @@ class PresenceTracker:
         self.scanner = scanner
         self.db = database
         self.logger = logging.getLogger(__name__)
-        self.device_states = {}  # {mac: {'last_seen': datetime, 'missed_pings': int}}
+        self.device_states = (
+            {}
+        )  # {mac: {'last_seen': datetime, 'missed_pings': int}}
 
     def update_presence(self):
         """Perform scan and update presence status for all devices"""
@@ -71,7 +73,10 @@ class PresenceTracker:
                     ):
                         self.db.log_presence(mac, DeviceStatus.DEPARTED)
                         del self.device_states[mac]
-                    elif self.device_states[mac]["missed_pings"] >= Config.PING_TIMEOUT:
+                    elif (
+                        self.device_states[mac]["missed_pings"]
+                        >= Config.PING_TIMEOUT
+                    ):
                         self.db.log_presence(mac, DeviceStatus.ABSENT)
 
             return len(devices)

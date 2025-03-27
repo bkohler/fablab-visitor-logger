@@ -131,6 +131,6 @@ class Database:
                     device_info.get("vendor_name"),
                     device_info.get("model_number"),
                     now,
-                    now
+                    now,
                 ),
             )
