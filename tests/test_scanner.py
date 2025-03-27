@@ -6,6 +6,7 @@ from config import DeviceStatus, Config
 from database import Database
 
 class TestBLEScanner:
+    @pytest.mark.ble_required
     @patch('scanner.btle.Scanner')
     def test_scan_success(self, mock_scanner):
         """Test successful BLE scan returns device data"""
@@ -22,8 +23,9 @@ class TestBLEScanner:
         assert result[0]['mac_address'] == "AA:BB:CC:DD:EE:FF"
         assert result[0]['rssi'] == -70
         assert isinstance(result[0]['timestamp'], datetime)
-
-    @patch('scanner.btle.Scanner')
+@pytest.mark.ble_required
+@patch('scanner.btle.Scanner')
+def test_scan_failure(self, mock_scanner):
     def test_scan_failure(self, mock_scanner):
         """Test scan handles BLE errors properly"""
         mock_scanner.return_value.scan.side_effect = Exception("BLE Error")
