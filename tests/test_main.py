@@ -45,7 +45,11 @@ class TestPresenceMonitoringApp:
         app._test_mode = True
 
         # Setup mocks
-        mock_time.side_effect = [0, 1, 2]  # start_time=0, iteration_time=1, end_time=2
+        mock_time.side_effect = [
+            0,
+            1,
+            2,
+        ]  # start_time=0, iteration_time=1, end_time=2
         mock_sleep.side_effect = lambda *_: setattr(app, "running", False)
 
         # Run test
@@ -68,7 +72,9 @@ class TestPresenceMonitoringApp:
         """Test application handles scan errors gracefully"""
         mock_tracker_instance = MagicMock()
         mock_tracker.return_value = mock_tracker_instance
-        mock_tracker_instance.update_presence.side_effect = Exception("Scan error")
+        mock_tracker_instance.update_presence.side_effect = Exception(
+            "Scan error"
+        )
         mock_scanner_instance = MagicMock()
         mock_scanner.return_value = mock_scanner_instance
         mock_scanner_instance.scan.side_effect = Exception("BLE scan failed")
@@ -77,7 +83,11 @@ class TestPresenceMonitoringApp:
         app._test_mode = True
 
         # Setup mocks
-        mock_time.side_effect = [0, 1, 2]  # start_time=0, iteration_time=1, end_time=2
+        mock_time.side_effect = [
+            0,
+            1,
+            2,
+        ]  # start_time=0, iteration_time=1, end_time=2
         mock_sleep.side_effect = lambda *_: setattr(app, "running", False)
 
         # Run test

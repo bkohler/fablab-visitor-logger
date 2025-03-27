@@ -55,7 +55,8 @@ class Database:
 
         with self.conn:
             # Update or insert device
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 INSERT INTO devices (
                     device_id,
                     anonymous_id,
@@ -66,17 +67,22 @@ class Database:
                 ON CONFLICT(device_id) DO UPDATE SET
                     last_seen = excluded.last_seen,
                     status = excluded.status
-            """, (device_id, anonymous_id, timestamp, timestamp, status.value))
+            """,
+                (device_id, anonymous_id, timestamp, timestamp, status.value),
+            )
 
             # Log presence event
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 INSERT INTO presence_logs (
                     device_id,
                     timestamp,
                     status,
                     rssi
                 ) VALUES (?, ?, ?, ?)
-            """, (device_id, timestamp, status.value, rssi))
+            """,
+                (device_id, timestamp, status.value, rssi),
+            )
 
     def cleanup_old_data(self):
         cutoff = datetime.now() - timedelta(days=Config.DATA_RETENTION_DAYS)
@@ -84,8 +90,11 @@ class Database:
             self.conn.execute(
                 "DELETE FROM presence_logs WHERE timestamp < ?", (cutoff,)
             )
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 DELETE FROM devices
                 WHERE last_seen < ?
                 AND status = 'departed'
-            """, (cutoff,))
+            """,
+                (cutoff,),
+            )

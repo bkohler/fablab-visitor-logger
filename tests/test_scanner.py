@@ -1,17 +1,18 @@
-import pytest
-
-pytestmark = pytest.mark.ble_required
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from fablab_visitor_logger.config import Config, DeviceStatus
 from fablab_visitor_logger.database import Database
 from fablab_visitor_logger.scanner import BLEScanner, PresenceTracker
 
+pytestmark = pytest.mark.ble_required
+
 
 class TestBLEScanner:
     @pytest.mark.ble_required
-    @patch("scanner.btle.Scanner")
+    @patch("fablab_visitor_logger.scanner.btle.Scanner")
     def test_scan_success(self, mock_scanner):
         """Test successful BLE scan returns device data"""
         # Setup mock
@@ -29,9 +30,8 @@ class TestBLEScanner:
         assert isinstance(result[0]["timestamp"], datetime)
 
 
-@pytest.mark.ble_required
-@patch("scanner.btle.Scanner")
-def test_scan_failure(self, mock_scanner):
+    @pytest.mark.ble_required
+    @patch("fablab_visitor_logger.scanner.btle.Scanner")
     def test_scan_failure(self, mock_scanner):
         """Test scan handles BLE errors properly"""
         mock_scanner.return_value.scan.side_effect = Exception("BLE Error")

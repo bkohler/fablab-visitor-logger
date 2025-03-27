@@ -57,7 +57,10 @@ class TestDatabase:
 
         # Verify cleanup queries
         assert mock_conn.execute.call_count == 2
-        assert "DELETE FROM presence_logs" in \
-            mock_conn.execute.call_args_list[0][0][0]
-        assert "DELETE FROM devices" in \
-            mock_conn.execute.call_args_list[1][0][0]
+        assert (
+            "DELETE FROM presence_logs"
+            in mock_conn.execute.call_args_list[0][0][0]
+        )
+        assert (
+            "DELETE FROM devices" in mock_conn.execute.call_args_list[1][0][0]
+        )

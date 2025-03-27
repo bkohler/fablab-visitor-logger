@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from fablab_visitor_logger.config import Config
 from fablab_visitor_logger.reporting import Reporter
 
@@ -23,7 +24,6 @@ def test_db():
             last_seen DATETIME,
             status TEXT
         );
-        
         CREATE TABLE presence_logs (
             log_id INTEGER PRIMARY KEY,
             device_id TEXT,
@@ -31,12 +31,10 @@ def test_db():
             status TEXT,
             rssi INTEGER
         );
-        
         INSERT INTO devices VALUES
             ('device1', 'anon1', '2025-03-26', '2025-03-27', 'present'),
             ('device2', 'anon2', '2025-03-26', '2025-03-26', 'absent'),
             ('device3', 'anon3', '2025-03-26', '2025-03-27', 'departed');
-            
         INSERT INTO presence_logs VALUES
             (1, 'device1', '2025-03-26 10:00', 'present', -50),
             (2, 'device1', '2025-03-27 11:00', 'present', -55),

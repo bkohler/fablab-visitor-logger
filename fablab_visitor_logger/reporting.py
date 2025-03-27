@@ -76,7 +76,7 @@ class Reporter:
 def main():
     parser = argparse.ArgumentParser(
         description="FabLab Visitor Logger Reporting Interface",
-        prog="fablab-report"
+        prog="fablab-report",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -90,14 +90,12 @@ def main():
 
     # Stats command
     stats_parser = subparsers.add_parser(  # noqa: F841
-        "stats",
-        help="Show visitor statistics"
+        "stats", help="Show visitor statistics"
     )
 
     # Export command
     export_parser = subparsers.add_parser(
-        "export-csv",
-        help="Export data to CSV"
+        "export-csv", help="Export data to CSV"
     )
     export_parser.add_argument("output_path", help="Path to output CSV file")
 

@@ -15,5 +15,15 @@ dependencies = [
     "pytest-mock"
 ]
 
+[tool.black]
+line-length = 80
+
+[tool.flake8]
+max-line-length = 80
+extend-select = ["B950"]
+
+[tool.isort]
+profile = "black"
+
 [tool.setuptools]
 packages = ["fablab_visitor_logger"]
