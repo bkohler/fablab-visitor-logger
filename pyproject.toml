@@ -25,7 +25,7 @@ skips = ["B101"]
 [tool.flake8]
 max-line-length = 88
 extend-select = ["B950"]
-extend-ignore = ["W293"]
+extend-ignore = ["W293", "W503"]
 
 [tool.isort]
 profile = "black"
