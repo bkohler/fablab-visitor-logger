@@ -15,7 +15,7 @@ def parse_args():
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
     # Scan mode (default behavior)
-    scan_parser = subparsers.add_parser("scan", help="Run continuous scanning")
+    subparsers.add_parser("scan", help="Run continuous scanning")
 
     # Report mode
     report_parser = subparsers.add_parser("report", help="Reporting commands")
@@ -34,6 +34,7 @@ def parse_args():
     )
     
     return parser.parse_args()
+
 
 
 class PresenceMonitoringApp:
@@ -131,6 +132,8 @@ def main():
         except Exception as e:
             print(f"Error: {str(e)}", file=sys.stderr)
             sys.exit(1)
+
+
 
 if __name__ == "__main__":
     main()

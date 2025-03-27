@@ -117,12 +117,10 @@ class TestPresenceMonitoringApp:
             {"device_id": "test1", "status": "present"},
             {"device_id": "test2", "status": "absent"}
         ]
-        
         # Run test
         with patch("__main__.__name__", "__main__"):
             from fablab_visitor_logger.main import main
             main()
-        
         # Verify report mode was called
         mock_reporter_instance.list_devices.assert_called_once_with(False)
         # Print calls verified by captured stdout
