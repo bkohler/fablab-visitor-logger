@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fablab_visitor_logger"
+version = "0.1.0"
+description = "FabLab visitor presence tracking system"
+dependencies = [
+    "bleak",
+    "python-dotenv",
+    "sqlalchemy",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock"
+]

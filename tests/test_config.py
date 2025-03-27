@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from config import Config, DeviceStatus
+from fablab_visitor_logger.config import Config, DeviceStatus
 
 class TestConfig:
     def test_device_status_enum(self):

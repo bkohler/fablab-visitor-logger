@@ -1,4 +1,5 @@
 import pytest
+pytestmark = pytest.mark.ble_required
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 from scanner import BLEScanner, PresenceTracker

@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
-from database import Database
-from config import Config, DeviceStatus
+from fablab_visitor_logger.database import Database
+from fablab_visitor_logger.config import Config, DeviceStatus
 
 class TestDatabase:
     @patch('sqlite3.connect')
@@ -20,7 +20,7 @@ class TestDatabase:
         assert "CREATE TABLE IF NOT EXISTS occupancy_aggregates" in calls
 
     @patch('sqlite3.connect')
-    @patch('database.datetime')
+    @patch('fablab_visitor_logger.database.datetime')
     def test_log_presence(self, mock_datetime, mock_connect):
         """Test logging presence updates device and creates log entry"""
         mock_conn = MagicMock()
