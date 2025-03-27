@@ -72,9 +72,7 @@ class TestPresenceMonitoringApp:
         """Test application handles scan errors gracefully"""
         mock_tracker_instance = MagicMock()
         mock_tracker.return_value = mock_tracker_instance
-        mock_tracker_instance.update_presence.side_effect = Exception(
-            "Scan error"
-        )
+        mock_tracker_instance.update_presence.side_effect = Exception("Scan error")
         mock_scanner_instance = MagicMock()
         mock_scanner.return_value = mock_scanner_instance
         mock_scanner_instance.scan.side_effect = Exception("BLE scan failed")
@@ -115,16 +113,17 @@ class TestPresenceMonitoringApp:
         mock_reporter.return_value = mock_reporter_instance
         mock_reporter_instance.list_devices.return_value = [
             {"device_id": "test1", "status": "present"},
-            {"device_id": "test2", "status": "absent"}
+            {"device_id": "test2", "status": "absent"},
         ]
         # Run test
         with patch("__main__.__name__", "__main__"):
             from fablab_visitor_logger.main import main
+
             main()
         # Verify report mode was called
         mock_reporter_instance.list_devices.assert_called_once_with(False)
         # Print calls verified by captured stdout
-        
+
     @patch("fablab_visitor_logger.main.sys")
     @patch("fablab_visitor_logger.main.argparse")
     @patch("fablab_visitor_logger.reporting.Reporter")
@@ -145,12 +144,13 @@ class TestPresenceMonitoringApp:
         mock_reporter_instance = MagicMock()
         mock_reporter.return_value = mock_reporter_instance
         mock_reporter_instance.export_csv.side_effect = ValueError("Test error")
-        
+
         # Run test
         with patch("__main__.__name__", "__main__"):
             from fablab_visitor_logger.main import main
+
             main()
-        
+
         # Verify error was handled
         mock_sys.stderr.write.assert_called()
         mock_sys.exit.assert_called_once_with(1)

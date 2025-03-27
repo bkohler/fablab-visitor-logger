@@ -34,9 +34,7 @@ class Reporter:
             stats["total_devices"] = cursor.fetchone()[0]
 
             # Currently present devices
-            cursor.execute(
-                "SELECT COUNT(*) FROM devices WHERE status = 'present'"
-            )
+            cursor.execute("SELECT COUNT(*) FROM devices WHERE status = 'present'")
             stats["present_devices"] = cursor.fetchone()[0]
 
             # Visits in last 24 hours
@@ -94,9 +92,7 @@ def main():
     )
 
     # Export command
-    export_parser = subparsers.add_parser(
-        "export-csv", help="Export data to CSV"
-    )
+    export_parser = subparsers.add_parser("export-csv", help="Export data to CSV")
     export_parser.add_argument("output_path", help="Path to output CSV file")
 
     args = parser.parse_args()

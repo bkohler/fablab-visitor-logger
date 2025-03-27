@@ -24,17 +24,14 @@ def parse_args():
         choices=["list-devices", "stats", "export-csv"],
         help="Reporting command to execute",
     )
-    report_parser.add_argument(
-        "--output", help="Output file path for export-csv"
-    )
+    report_parser.add_argument("--output", help="Output file path for export-csv")
     report_parser.add_argument(
         "--active",
         action="store_true",
         help="Show only active devices for list-devices",
     )
-    
-    return parser.parse_args()
 
+    return parser.parse_args()
 
 
 class PresenceMonitoringApp:
@@ -67,9 +64,7 @@ class PresenceMonitoringApp:
 
                 try:
                     device_count = self.tracker.update_presence()
-                    self.logger.info(
-                        f"Scan complete, detected {device_count} devices"
-                    )
+                    self.logger.info(f"Scan complete, detected {device_count} devices")
                     self.db.cleanup_old_data()
                 except Exception as e:
                     self.logger.error(f"Error during scan: {str(e)}")
@@ -90,9 +85,7 @@ class PresenceMonitoringApp:
                     self.logger.debug(f"Sleeping for {sleep_time:.2f} seconds")
                     time.sleep(sleep_time)
                 else:
-                    self.logger.debug(
-                        "Scan took longer than interval, skipping sleep"
-                    )
+                    self.logger.debug("Scan took longer than interval, skipping sleep")
 
         except Exception as e:
             self.logger.critical(f"Fatal error: {str(e)}")
@@ -132,7 +125,6 @@ def main():
         except Exception as e:
             print(f"Error: {str(e)}", file=sys.stderr)
             sys.exit(1)
-
 
 
 if __name__ == "__main__":
