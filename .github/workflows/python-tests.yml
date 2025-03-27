@@ -36,6 +36,13 @@ jobs:
         bandit -r .
         mypy .
         
+    - name: Setup test database
+      run: |
+        python -c "from database import Database; Database().initialize()"
+        
     - name: Test with pytest
       run: |
-        python -m pytest tests/ -v -m "not ble_required" --cov=.
+        python -m pytest tests/ -v -m "not ble_required" --cov=. \
+          --cov-report=xml \
+          --cov-fail-under=80
+        python -m pytest tests/test_scanner.py -v -m "ble_required" --no-cov || echo "BLE tests skipped"

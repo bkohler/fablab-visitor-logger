@@ -1,0 +1,6 @@
+bleak
+python-dotenv
+sqlalchemy
+pytest
+pytest-cov
+pytest-mock

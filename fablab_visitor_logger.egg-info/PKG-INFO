@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: fablab_visitor_logger
+Version: 0.1.0
+Summary: FabLab visitor presence tracking system
+Requires-Dist: bleak
+Requires-Dist: python-dotenv
+Requires-Dist: sqlalchemy
+Requires-Dist: pytest
+Requires-Dist: pytest-cov
+Requires-Dist: pytest-mock

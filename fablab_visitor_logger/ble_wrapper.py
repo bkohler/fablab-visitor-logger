@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import os
 import sys
+
 from scanner import BLEScanner
+
 
 def main():
     try:
@@ -12,6 +13,7 @@ def main():
     except Exception as e:
         print(f"Error: {str(e)}", file=sys.stderr)
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())
