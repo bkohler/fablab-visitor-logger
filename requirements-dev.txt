@@ -7,7 +7,7 @@ isort==5.13.2
 
 # Security
 bandit==1.7.7
-safety==2.3.5
+safety>=2.4.0
 
 # Type checking
 mypy==1.9.0
