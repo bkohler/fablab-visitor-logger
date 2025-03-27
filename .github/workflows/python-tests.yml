@@ -24,6 +24,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
+    - name: Install development dependencies
+      run: |
+        pip install -r requirements-dev.txt
+        
+    - name: Run linting and security checks
+      run: |
+        flake8 .
+        black --check .
+        isort --check .
+        bandit -r .
+        mypy .
+        
     - name: Test with pytest
       run: |
-        python -m pytest tests/ -v -m "not ble_required"
+        python -m pytest tests/ -v -m "not ble_required" --cov=.
