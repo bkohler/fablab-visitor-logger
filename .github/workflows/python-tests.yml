@@ -41,7 +41,8 @@ jobs:
 
     - name: Setup test database
       run: |
-        python -c "from fablab_visitor_logger.database import Database; Database().initialize()"
+        touch fablab_logger.db
+        python -c "from fablab_visitor_logger.database import Database; Database()._init_db()"
         
     - name: Test with pytest
       run: |
