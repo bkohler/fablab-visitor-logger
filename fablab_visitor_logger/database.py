@@ -98,3 +98,39 @@ class Database:
             """,
                 (cutoff,),
             )
+            self.conn.execute(
+                "DELETE FROM device_info WHERE last_detected < ?", (cutoff,)
+            )
+
+    def log_device_info(self, device_id, device_info):
+        """Log or update device information"""
+        now = datetime.now()
+        with self.conn:
+            self.conn.execute(
+                """
+                INSERT INTO device_info (
+                    device_id,
+                    device_name,
+                    device_type,
+                    vendor_name,
+                    model_number,
+                    first_detected,
+                    last_detected
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(device_id) DO UPDATE SET
+                    device_name = excluded.device_name,
+                    device_type = excluded.device_type,
+                    vendor_name = excluded.vendor_name,
+                    model_number = excluded.model_number,
+                    last_detected = excluded.last_detected
+            """,
+                (
+                    device_id,
+                    device_info.get("device_name"),
+                    device_info.get("device_type"),
+                    device_info.get("vendor_name"),
+                    device_info.get("model_number"),
+                    now,
+                    now
+                ),
+            )
