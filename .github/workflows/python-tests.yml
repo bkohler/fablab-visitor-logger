@@ -36,9 +36,12 @@ jobs:
         bandit -r .
         mypy .
         
+    - name: Install package in development mode
+      run: pip install -e .
+
     - name: Setup test database
       run: |
-        python -c "from database import Database; Database().initialize()"
+        python -c "from fablab_visitor_logger.database import Database; Database().initialize()"
         
     - name: Test with pytest
       run: |
