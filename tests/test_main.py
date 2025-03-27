@@ -99,3 +99,60 @@ class TestPresenceMonitoringApp:
 
         mock_tracker_instance.update_presence.assert_called_once()
         mock_sleep.assert_not_called()
+
+    @patch("fablab_visitor_logger.main.sys")
+    @patch("fablab_visitor_logger.main.parse_args")
+    @patch("fablab_visitor_logger.reporting.Reporter")
+    def test_report_mode(self, mock_reporter, mock_parse_args, mock_sys):
+        """Test report mode CLI functionality"""
+        # Setup mocks
+        mock_args = MagicMock()
+        mock_args.mode = "report"
+        mock_args.command = "list-devices"
+        mock_args.active = False
+        mock_parse_args.return_value = mock_args
+        mock_reporter_instance = MagicMock()
+        mock_reporter.return_value = mock_reporter_instance
+        mock_reporter_instance.list_devices.return_value = [
+            {"device_id": "test1", "status": "present"},
+            {"device_id": "test2", "status": "absent"}
+        ]
+        
+        # Run test
+        with patch("__main__.__name__", "__main__"):
+            from fablab_visitor_logger.main import main
+            main()
+        
+        # Verify report mode was called
+        mock_reporter_instance.list_devices.assert_called_once_with(False)
+        # Print calls verified by captured stdout
+        
+    @patch("fablab_visitor_logger.main.sys")
+    @patch("fablab_visitor_logger.main.argparse")
+    @patch("fablab_visitor_logger.reporting.Reporter")
+    def test_report_mode_error(self, mock_reporter, mock_argparse, mock_sys):
+        """Test report mode error handling"""
+        # Setup mocks
+        mock_parser = MagicMock()
+        mock_argparse.ArgumentParser.return_value = mock_parser
+        mock_subparsers = MagicMock()
+        mock_parser.add_subparsers.return_value = mock_subparsers
+        mock_report_parser = MagicMock()
+        mock_subparsers.add_parser.return_value = mock_report_parser
+        mock_args = MagicMock()
+        mock_args.mode = "report"
+        mock_args.command = "export-csv"
+        mock_args.output = None
+        mock_parser.parse_args.return_value = mock_args
+        mock_reporter_instance = MagicMock()
+        mock_reporter.return_value = mock_reporter_instance
+        mock_reporter_instance.export_csv.side_effect = ValueError("Test error")
+        
+        # Run test
+        with patch("__main__.__name__", "__main__"):
+            from fablab_visitor_logger.main import main
+            main()
+        
+        # Verify error was handled
+        mock_sys.stderr.write.assert_called()
+        mock_sys.exit.assert_called_once_with(1)

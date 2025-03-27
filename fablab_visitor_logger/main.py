@@ -1,3 +1,4 @@
+import argparse
 import logging
 import signal
 import sys
@@ -6,6 +7,33 @@ import time
 from fablab_visitor_logger.config import Config
 from fablab_visitor_logger.database import Database
 from fablab_visitor_logger.scanner import BLEScanner, PresenceTracker
+
+
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description="FabLab Visitor Logger")
+    subparsers = parser.add_subparsers(dest="mode", required=True)
+
+    # Scan mode (default behavior)
+    scan_parser = subparsers.add_parser("scan", help="Run continuous scanning")
+
+    # Report mode
+    report_parser = subparsers.add_parser("report", help="Reporting commands")
+    report_parser.add_argument(
+        "command",
+        choices=["list-devices", "stats", "export-csv"],
+        help="Reporting command to execute",
+    )
+    report_parser.add_argument(
+        "--output", help="Output file path for export-csv"
+    )
+    report_parser.add_argument(
+        "--active",
+        action="store_true",
+        help="Show only active devices for list-devices",
+    )
+    
+    return parser.parse_args()
 
 
 class PresenceMonitoringApp:
@@ -73,38 +101,15 @@ class PresenceMonitoringApp:
             self.logger.info("FabLab Presence Monitoring System stopped")
 
 
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="FabLab Visitor Logger")
-    subparsers = parser.add_subparsers(dest="mode", required=True)
-
-    # Scan mode (default behavior)
-    scan_parser = subparsers.add_parser("scan", help="Run continuous scanning")
-
-    # Report mode
-    report_parser = subparsers.add_parser("report", help="Reporting commands")
-    report_parser.add_argument(
-        "command",
-        choices=["list-devices", "stats", "export-csv"],
-        help="Reporting command to execute",
-    )
-    report_parser.add_argument(
-        "--output", help="Output file path for export-csv"
-    )
-    report_parser.add_argument(
-        "--active",
-        action="store_true",
-        help="Show only active devices for list-devices",
-    )
-
-    args = parser.parse_args()
+def main():
+    """Main entry point for CLI"""
+    args = parse_args()
 
     if args.mode == "scan":
         app = PresenceMonitoringApp()
         app.run()
     elif args.mode == "report":
-        from reporting import Reporter
+        from fablab_visitor_logger.reporting import Reporter
 
         reporter = Reporter()
 
@@ -126,3 +131,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error: {str(e)}", file=sys.stderr)
             sys.exit(1)
+
+if __name__ == "__main__":
+    main()
