@@ -18,6 +18,10 @@ dependencies = [
 [tool.black]
 line-length = 80
 
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]
+
 [tool.flake8]
 max-line-length = 80
 extend-select = ["B950"]

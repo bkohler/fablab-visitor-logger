@@ -29,7 +29,6 @@ class TestBLEScanner:
         assert result[0]["rssi"] == -70
         assert isinstance(result[0]["timestamp"], datetime)
 
-
     @pytest.mark.ble_required
     @patch("fablab_visitor_logger.scanner.btle.Scanner")
     def test_scan_failure(self, mock_scanner):
