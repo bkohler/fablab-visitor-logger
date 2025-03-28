@@ -22,33 +22,47 @@ class TestDatabaseDeviceInfo:
         device_info = {
             "device_name": "John's iPhone",
             "device_type": "iPhone 14",
-            "vendor_name": "Apple",
             "model_number": "A2882",
         }
 
         db.log_device_info(device_id, device_info)
-
-        db.conn.execute.assert_called_once()
-        args = db.conn.execute.call_args[0][1]
+        
+        # Verify both calls were made
+        assert db.conn.execute.call_count == 2
+        
+        # Check devices table insert
+        devices_call = db.conn.execute.call_args_list[0]
+        assert "INSERT OR IGNORE INTO devices" in devices_call[0][0]
+        assert devices_call[0][1][0] == device_id
+        
+        # Check device_info insert
+        device_info_call = db.conn.execute.call_args_list[1]
+        args = device_info_call[0][1]
         assert args[0] == device_id
         assert args[1] == "John's iPhone"
         assert args[2] == "iPhone 14"
-        assert args[3] == "Apple"
-        assert args[4] == "A2882"
-        assert isinstance(args[5], datetime)
-        assert isinstance(args[6], datetime)
+        assert args[5] == "A2882"  # model_number is 5th parameter
+        assert isinstance(args[11], datetime)  # first_detected
+        assert isinstance(args[12], datetime)  # last_detected
 
     def test_update_device_info(self, db):
         """Test updating existing device info"""
         device_id = "AA:BB:CC:DD:EE:FF"
-        device_info = {"device_name": "Updated Name", "vendor_name": "Apple"}
+        device_info = {"device_name": "Updated Name"}
 
         db.log_device_info(device_id, device_info)
-
-        db.conn.execute.assert_called_once()
-        args = db.conn.execute.call_args[0][1]
+        
+        # Verify both calls were made
+        assert db.conn.execute.call_count == 2
+        
+        # Check devices table insert
+        devices_call = db.conn.execute.call_args_list[0]
+        assert "INSERT OR IGNORE INTO devices" in devices_call[0][0]
+        assert devices_call[0][1][0] == device_id
+        
+        # Check device_info update
+        device_info_call = db.conn.execute.call_args_list[1]
+        args = device_info_call[0][1]
         assert args[0] == device_id
         assert args[1] == "Updated Name"
-        assert args[3] == "Apple"
-
-        assert isinstance(args[6], datetime)  # last_detected updated
+        assert isinstance(args[11], datetime)  # last_detected updated

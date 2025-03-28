@@ -117,7 +117,14 @@ def main():
             if args.command == "list-devices":
                 devices = reporter.list_devices(args.active)
                 for device in devices:
-                    print(f"{device['device_id']} ({device['status']})")
+                    output = [
+                        f"ID: {device['device_id']}",
+                        f"Status: {device['status']}",
+                        f"Name: {device['device_name'] or 'Unknown'}",
+                        f"Vendor: {device['vendor_name'] or 'Unknown'}",
+                        f"Type: {device['device_type'] or 'Unknown'}"
+                    ]
+                    print(" | ".join(output))
             elif args.command == "stats":
                 stats = reporter.get_stats()
                 print(f"Total unique devices: {stats['total_devices']}")

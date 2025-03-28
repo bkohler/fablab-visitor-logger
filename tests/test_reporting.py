@@ -95,7 +95,13 @@ def test_export_csv_invalid_path(test_db):
 @patch("fablab_visitor_logger.reporting.Reporter")
 def test_cli_list_devices(mock_reporter, capsys):
     mock_reporter.return_value.list_devices.return_value = [
-        {"device_id": "test1", "status": "present"}
+        {
+            "device_id": "test1",
+            "status": "present",
+            "device_name": "Test Device",
+            "vendor_name": "Test Vendor",
+            "device_type": "Test Type"
+        }
     ]
 
     from fablab_visitor_logger import reporting
@@ -104,7 +110,7 @@ def test_cli_list_devices(mock_reporter, capsys):
         reporting.main()
 
     captured = capsys.readouterr()
-    assert "test1 (present)" in captured.out
+    assert "ID: test1 | Status: present | Name: Test Device | Vendor: Test Vendor | Type: Test Type" in captured.out
 
 
 @patch("fablab_visitor_logger.reporting.Reporter")
@@ -113,6 +119,8 @@ def test_cli_stats(mock_reporter, capsys):
         "total_devices": 5,
         "present_devices": 2,
         "recent_visits": 10,
+        "vendor_breakdown": {"Apple": 2, "Samsung": 1},
+        "type_breakdown": {"Phone": 3, "Tablet": 1}
     }
 
     from fablab_visitor_logger import reporting

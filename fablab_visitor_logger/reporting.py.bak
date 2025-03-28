@@ -23,15 +23,9 @@ class Reporter:
             if active_only:
                 query += " WHERE d.status IN ('present', 'absent')"
             cursor.execute(query)
-            rows = cursor.fetchall()
             
-            # Debug: Print raw query results
-            print("DEBUG - Raw query results:")
-            for i, row in enumerate(rows):
-                print(f"Row {i}: {row}")
-                
             devices = []
-            for row in rows:
+            for row in cursor.fetchall():
                 device = {
                     "device_id": row[0],
                     "anonymous_id": row[1],
