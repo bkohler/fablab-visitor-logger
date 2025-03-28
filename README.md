@@ -63,15 +63,15 @@ Note:
 3. If you encounter permission errors:
 1. Ensure bluez is installed: `sudo apt-get install bluez`
 2. Verify Python has proper capabilities: `sudo setcap 'cap_net_raw,cap_net_admin+eip' $(readlink -f $(which python))`
-
 Show visitor statistics:
 ```bash
-python main.py report stats
+python -m fablab_visitor_logger.main report stats
 ```
 
 Export data to CSV:
 ```bash
-python main.py report export-csv --output visitors.csv
+python -m fablab_visitor_logger.main report export-csv --output visitors.csv
+```
 ```
 
 ### Viewing Logged Data
