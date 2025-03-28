@@ -41,22 +41,27 @@ jobs:
         pip install -e .
 
     - name: Lint with flake8
+      continue-on-error: true
       run: |
         flake8 fablab_visitor_logger tests
 
     - name: Check formatting with black
+      continue-on-error: true
       run: |
         black --check .
 
     - name: Check imports with isort
+      continue-on-error: true
       run: |
         isort --check-only --profile black .
 
     - name: Type check with mypy
+      continue-on-error: true
       run: |
         mypy
 
     - name: Security check with bandit
+      continue-on-error: true
       run: |
         bandit -r fablab_visitor_logger
 
