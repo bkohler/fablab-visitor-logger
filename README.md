@@ -75,29 +75,31 @@ python main.py report export-csv --output visitors.csv
 ```
 
 ### Viewing Logged Data
-The SQLite database (`fablab_logger.db`) contains a table `visitor_logs` with:
-- MAC addresses
-- Timestamps 
-- Signal strength (RSSI)
+The SQLite database contains tables for tracking device presence and information. By default, the database file is excluded from version control.
 
 Query the database:
 ```bash
-sqlite3 fablab_logger.db "SELECT * FROM visitor_logs;"
+sqlite3 fablab_presence.db "SELECT * FROM presence_logs;"
 ```
 
 ### Exporting Data
 ```bash
-sqlite3 -header -csv fablab_logger.db "SELECT * FROM visitor_logs;" > visitors.csv
+sqlite3 -header -csv fablab_presence.db "SELECT * FROM presence_logs;" > visitors.csv
 ```
 
 ## Testing
 
-The test suite uses pytest with 100% coverage.
+The test suite uses pytest with 83.74% coverage (as of latest changes).
 
 ### Running Tests
 ```bash
-python -m pytest tests/ -v --cov=main --cov-report=term-missing
+python -m pytest tests/ -v -m "not ble_required" --cov=. --cov-report=term-missing
 ```
+
+### Recent Test Improvements
+- Updated test assertions for data cleanup functionality
+- Added more flexible test patterns
+- Improved test coverage reporting
 
 ### Test Structure
 - `test_scanner.py`: Tests BLE scanning functionality
