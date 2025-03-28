@@ -14,6 +14,8 @@ class Database:
         with self.conn:
             self.conn.executescript(
                 """
+                PRAGMA foreign_keys = ON;
+                
                 CREATE TABLE IF NOT EXISTS devices (
                     device_id TEXT PRIMARY KEY,
                     anonymous_id TEXT,
