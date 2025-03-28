@@ -9,23 +9,38 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python 3.12
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: "3.12"
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
+
+    - name: Cache APT packages
+      id: apt-cache
+      uses: actions/cache@v3
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/apt-packages.txt') }}
+
+    - name: Create apt-packages.txt for cache key
+      run: |
+        echo "libglib2.0-dev libbluetooth-dev pkg-config" > apt-packages.txt
 
     - name: Install system dependencies
       run: |
@@ -67,7 +82,15 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pytest --cov=fablab_visitor_logger tests/
+        pytest --cov=fablab_visitor_logger --cov-report=xml tests/
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.python-version }}
+        fail_ci_if_error: false
 
     - name: Run BDD tests
       run: |
