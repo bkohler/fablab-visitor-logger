@@ -207,7 +207,7 @@ class Database:
                     device_info.get("device_name"),
                     device_info.get("device_type") or device_type,
                     vendor_id,
-                    device_info.get("vendor_name"),  # Make vendor_name optional
+                    vendor_name,
                     device_info.get("model_number"),
                     json.dumps(device_info.get("service_uuids", [])),
                     json.dumps({
