@@ -32,9 +32,10 @@ class TestDeviceInfo:
         assert args[1] == "Test Device"
         assert args[2] == "BLE"
         assert args[3] == "Test Vendor"
-        assert args[4] == "123"
-        assert json.loads(args[5]) == device_info["service_uuids"]
-        assert json.loads(args[6]) == {"65535": "0102"}
-        assert args[7] == -12
-        assert args[8] == 512
-        assert json.loads(args[9]) == {"0000180a-0000-1000-8000-00805f9b34fb": "01"}
+        assert args[4] == None  # vendor_id should be none now
+        assert args[5] == "123"  # model_number
+        assert args[6] == json.dumps(device_info["service_uuids"])  # service_uuids
+        assert args[7] == json.dumps({"65535": "0102"})  # manufacturer data
+        assert args[8] == -12  # tx_power
+        assert args[9] == 512  # appearance
+        assert args[10] == json.dumps({"0000180a-0000-1000-8000-00805f9b34fb": "01"})  # service_data

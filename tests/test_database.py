@@ -129,11 +129,12 @@ class TestDatabase:
         assert args[1] == "Test Device"  # device_name
         assert args[2] == "Test Type"  # device_type
         assert args[3] == "Test Vendor"  # vendor_name
-        assert args[4] == "12345"  # model_number
-        assert args[5] == '["0000180a-0000-1000-8000-00805f9b34fb"]'  # service_uuids
-        assert args[6] == '{"65535": "74657374"}'  # manufacturer_data (hex encoded)
-        assert args[7] == -70  # tx_power
-        assert args[8] == 0  # appearance
-        assert args[9] == '{"0000180a-0000-1000-8000-00805f9b34fb": "74657374"}'  # service_data (hex encoded)
-        assert isinstance(args[10], datetime)  # first_detected
-        assert isinstance(args[11], datetime)  # last_detected
+        assert args[4] == None  # vendor_id
+        assert args[5] == "12345"  # model_number
+        assert args[6] == '["0000180a-0000-1000-8000-00805f9b34fb"]'  # service_uuids
+        assert args[7] == '{"65535": "74657374"}'  # manufacturer_data (hex encoded)
+        assert args[8] == -70  # tx_power
+        assert args[9] == 0  # appearance
+        assert args[10] == '{"0000180a-0000-1000-8000-00805f9b34fb": "74657374"}'  # service_data (hex encoded)
+        assert isinstance(args[11], datetime)  # first_detected
+        assert isinstance(args[12], datetime)  # last_detected

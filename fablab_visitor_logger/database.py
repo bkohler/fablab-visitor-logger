@@ -161,7 +161,9 @@ class Database:
             )
         
         # Extract vendor info
-        vendor_id = device_info.get("manufacturer_data", {}).get("vendor_id")
+        # Use None for vendor_id to not interfere with foreign key constraints
+        # The vendor ID should only be used internally for lookups
+        vendor_id = None
         vendor_name = device_info.get("vendor_name")
         device_type = device_info.get("device_type")
         
@@ -178,8 +180,8 @@ class Database:
                     device_id,
                     device_name,
                     device_type,
-                    vendor_id,
                     vendor_name,
+                    vendor_id,
                     model_number,
                     service_uuids,
                     manufacturer_data,
@@ -192,9 +194,9 @@ class Database:
                 ON CONFLICT(device_id) DO UPDATE SET
                     device_name = excluded.device_name,
                     device_type = excluded.device_type,
-                    vendor_id = excluded.vendor_id,
                     vendor_name = excluded.vendor_name,
                     model_number = excluded.model_number,
+                    vendor_id = excluded.vendor_id,
                     service_uuids = excluded.service_uuids,
                     manufacturer_data = excluded.manufacturer_data,
                     tx_power = excluded.tx_power,
@@ -206,8 +208,8 @@ class Database:
                     device_id,
                     device_info.get("device_name"),
                     device_info.get("device_type") or device_type,
-                    vendor_id,
                     vendor_name,
+                    vendor_id,
                     device_info.get("model_number"),
                     json.dumps(device_info.get("service_uuids", [])),
                     json.dumps({

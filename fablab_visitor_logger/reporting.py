@@ -25,11 +25,6 @@ class Reporter:
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            # Debug: Print raw query results
-            print("DEBUG - Raw query results:")
-            for i, row in enumerate(rows):
-                print(f"Row {i}: {row}")
-                
             devices = []
             for row in rows:
                 device = {
