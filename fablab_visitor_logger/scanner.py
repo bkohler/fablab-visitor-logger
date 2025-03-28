@@ -51,17 +51,10 @@ class BLEScanner:
             if isinstance(data, dict):
                 # Only convert if values are bytes
                 if all(isinstance(v, bytes) for v in data.values()):
-                    result = {str(k): v.hex() for k, v in data.items()}
-                    # Extract vendor info from first 2 bytes of first value
-                    if data.values():
-                        first_bytes = next(iter(data.values()))[:2]
-                        vendor_id = int.from_bytes(first_bytes, byteorder='little')
-                        result["vendor_id"] = vendor_id
-                    return result
+                    return {str(k): v.hex() for k, v in data.items()}
                 return {}
             elif isinstance(data, bytes):
-                vendor_id = int.from_bytes(data[:2], byteorder='little')
-                return {"0": data.hex(), "vendor_id": vendor_id}
+                return {"0": data.hex()}
             return {}
         except Exception:
             return {}

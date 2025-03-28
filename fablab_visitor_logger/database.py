@@ -168,10 +168,8 @@ class Database:
         # Get vendor info if not explicitly provided
         if vendor_name is None or device_type is None:
             v_name, d_type = self._get_vendor_info(vendor_id)
-            if vendor_name is None:  # Only override if not provided
-                vendor_name = v_name
-            if device_type is None:  # Only override if not provided
-                device_type = d_type
+            vendor_name = vendor_name if vendor_name is not None else v_name
+            device_type = device_type if device_type is not None else d_type
         
         with self.conn:
             self.conn.execute(

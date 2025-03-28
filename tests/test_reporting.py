@@ -36,8 +36,8 @@ def test_db():
             ('device2', 'anon2', '2025-03-26', '2025-03-26', 'absent'),
             ('device3', 'anon3', '2025-03-26', '2025-03-27', 'departed');
         INSERT INTO presence_logs VALUES
-            (1, 'device1', '2025-03-26 10:00', 'present', -50),
-            (2, 'device1', '2025-03-27 11:00', 'present', -55),
+            (1, 'device1', datetime('now', '-2 hours'), 'present', -50),
+            (2, 'device1', datetime('now', '-1 hour'), 'present', -55),
             (3, 'device2', '2025-03-26 12:00', 'absent', -60),
             (4, 'device3', '2025-03-27 13:00', 'departed', -65);
     """
