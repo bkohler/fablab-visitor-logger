@@ -42,19 +42,19 @@ sudo systemctl start fablab-logger
 
 #### Continuous Scanning Mode
 ```bash
-sudo $(which python) main.py scan
+sudo $(which python) -m fablab_visitor_logger.main scan
 ```
 
 #### Reporting Commands
 
 List all detected devices:
 ```bash
-python main.py report list-devices
+python -m fablab_visitor_logger.main report list-devices
 ```
 
 List only active devices:
 ```bash
-python main.py report list-devices --active
+python -m fablab_visitor_logger.main report list-devices --active
 ```
 
 Note:
