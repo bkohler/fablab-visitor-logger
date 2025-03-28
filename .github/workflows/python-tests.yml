@@ -58,7 +58,7 @@ jobs:
     - name: Type check with mypy
       continue-on-error: true
       run: |
-        mypy
+        mypy fablab_visitor_logger tests
 
     - name: Security check with bandit
       continue-on-error: true
