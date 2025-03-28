@@ -1,0 +1,21 @@
+# Database files
+*.db
+
+# Log files
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Editor/IDE files
+*.swp
+.clinerules-code
+
+# Environment files
+.env

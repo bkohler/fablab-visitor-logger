@@ -1,1 +1,0 @@
-fablab_visitor_logger
