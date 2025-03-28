@@ -41,6 +41,17 @@ class Database:
                     present_count INTEGER,
                     PRIMARY KEY(date, hour)
                 );
+                
+                CREATE TABLE IF NOT EXISTS device_info (
+                    device_id TEXT PRIMARY KEY,
+                    device_name TEXT,
+                    device_type TEXT,
+                    vendor_name TEXT,
+                    model_number TEXT,
+                    first_detected DATETIME,
+                    last_detected DATETIME,
+                    FOREIGN KEY(device_id) REFERENCES devices(device_id)
+                );
             """
             )
 
