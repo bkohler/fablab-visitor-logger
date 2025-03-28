@@ -56,11 +56,16 @@ class TestDatabase:
         db.cleanup_old_data()
 
         # Verify cleanup queries
-        assert mock_conn.execute.call_count == 2
-        assert (
-            "DELETE FROM presence_logs"
-            in mock_conn.execute.call_args_list[0][0][0]
+        assert mock_conn.execute.call_count == 3
+        assert any(
+            "DELETE FROM presence_logs" in call[0][0]
+            for call in mock_conn.execute.call_args_list
         )
-        assert (
-            "DELETE FROM devices" in mock_conn.execute.call_args_list[1][0][0]
+        assert any(
+            "DELETE FROM devices" in call[0][0]
+            for call in mock_conn.execute.call_args_list
+        )
+        assert any(
+            "DELETE FROM device_info" in call[0][0]
+            for call in mock_conn.execute.call_args_list
         )
