@@ -52,7 +52,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt || echo "Warning: Some requirements failed to install"
         pip install -r requirements-dev.txt
-        pip install behave
+        pip install behave pytest-asyncio
         pip install -e .
 
     - name: Lint with flake8
