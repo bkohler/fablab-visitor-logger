@@ -26,15 +26,15 @@ class TestDatabaseDeviceInfo:
         }
 
         db.log_device_info(device_id, device_info)
-        
+
         # Verify both calls were made
         assert db.conn.execute.call_count == 2
-        
+
         # Check devices table insert
         devices_call = db.conn.execute.call_args_list[0]
         assert "INSERT OR IGNORE INTO devices" in devices_call[0][0]
         assert devices_call[0][1][0] == device_id
-        
+
         # Check device_info insert
         device_info_call = db.conn.execute.call_args_list[1]
         args = device_info_call[0][1]
@@ -51,15 +51,15 @@ class TestDatabaseDeviceInfo:
         device_info = {"device_name": "Updated Name"}
 
         db.log_device_info(device_id, device_info)
-        
+
         # Verify both calls were made
         assert db.conn.execute.call_count == 2
-        
+
         # Check devices table insert
         devices_call = db.conn.execute.call_args_list[0]
         assert "INSERT OR IGNORE INTO devices" in devices_call[0][0]
         assert devices_call[0][1][0] == device_id
-        
+
         # Check device_info update
         device_info_call = db.conn.execute.call_args_list[1]
         args = device_info_call[0][1]

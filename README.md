@@ -39,14 +39,14 @@ A Raspberry Pi application that logs visitors via Bluetooth Low Energy (BLE) dev
     *Note: If you plan to run development checks, install dev dependencies:* `pip install -r requirements-dev.txt`
 
 5.  **Grant Bluetooth permissions to Python:**
-    *This step is required for the scanning functionality.*
+    *This step grants specific capabilities for direct hardware access, which was often needed by older libraries like `bluepy`. The current version uses `bleak`, which typically relies on DBus and may not require `setcap` if the user running the application is in the appropriate group (e.g., `bluetooth`). However, if you encounter permission errors, applying `setcap` might still be necessary depending on your system configuration.*
     ```bash
+    # Potentially needed if running into permission issues:
     sudo setcap 'cap_net_raw,cap_net_admin+eip' $(readlink -f $(which python))
     # If using a virtualenv:
     # sudo setcap 'cap_net_raw,cap_net_admin+eip' $(readlink -f .venv/bin/python)
     ```
-    *Verify capabilities:* `getcap $(readlink -f $(which python))` or `getcap $(readlink -f .venv/bin/python)`
-
+    *Verify capabilities (if applied):* `getcap $(readlink -f $(which python))` or `getcap $(readlink -f .venv/bin/python)`
 6.  **Set up as a systemd service (Recommended for production):**
     ```bash
     sudo cp deployment/fablab-logger.service /etc/systemd/system/
@@ -67,11 +67,12 @@ The application is run via the `main.py` script using Python's `-m` module execu
 To start continuous scanning and logging:
 
 ```bash
-# If running directly (requires permissions granted via setcap)
+# Run the scanner (may require sudo if not using setcap or user group permissions)
 python -m fablab_visitor_logger.main scan
 
-# If setcap didn't work or you prefer sudo (ensure virtualenv python is used if applicable)
+# Alternatively, run with sudo if needed:
 # sudo $(which python) -m fablab_visitor_logger.main scan
+# Or if using a virtualenv:
 # sudo .venv/bin/python -m fablab_visitor_logger.main scan
 ```
 

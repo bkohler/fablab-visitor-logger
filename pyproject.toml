@@ -12,7 +12,8 @@ dependencies = [
     "sqlalchemy",
     "pytest",
     "pytest-cov",
-    "pytest-mock"
+    "pytest-mock",
+    "pytest-asyncio"
 ]
 
 [tool.black]
@@ -32,3 +33,8 @@ profile = "black"
 
 [tool.setuptools]
 packages = ["fablab_visitor_logger"]
+
+[tool.pytest.ini_options]
+# Explicitly use asyncio backend from pytest-asyncio
+# This helps avoid conflicts if other async plugins like anyio are detected
+asyncio_mode = "strict"

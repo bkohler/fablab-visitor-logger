@@ -9,20 +9,20 @@ classDiagram
         +rssi_threshold: int
         +scan() List[Device]
     }
-    
+
     class Device {
         +mac_address: str
         +last_seen: datetime
         +rssi: int
         +status: Enum
     }
-    
+
     class PresenceEngine {
         +presence_timeout: int
         +departure_threshold: int
         +update_presence(Device)
     }
-    
+
     BLEScanner --> Device
     PresenceEngine --> Device
 ```

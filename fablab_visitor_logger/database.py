@@ -1,5 +1,5 @@
-import json
 import hashlib
+import json
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -16,7 +16,7 @@ class Database:
             self.conn.executescript(
                 """
                 PRAGMA foreign_keys = ON;
-                
+
                 CREATE TABLE IF NOT EXISTS devices (
                     device_id TEXT PRIMARY KEY,
                     anonymous_id TEXT,
@@ -44,7 +44,7 @@ class Database:
                     present_count INTEGER,
                     PRIMARY KEY(date, hour)
                 );
-                
+
                 CREATE TABLE IF NOT EXISTS vendors (
                     vendor_id INTEGER PRIMARY KEY,
                     vendor_name TEXT NOT NULL,
@@ -141,38 +141,42 @@ class Database:
         """Lookup vendor info by ID"""
         if not vendor_id:
             return None, None
-            
+
         with self.conn:
             cursor = self.conn.execute(
-                "SELECT vendor_name, common_device_types FROM vendors WHERE vendor_id = ?",
-                (vendor_id,)
+                """SELECT vendor_name, common_device_types
+                   FROM vendors
+                   WHERE vendor_id = ?""",
+                (vendor_id,),
             )
             return cursor.fetchone() or (None, None)
 
     def log_device_info(self, device_id, device_info):
         """Log or update device information with BLE characteristics"""
         now = datetime.now()
-        
+
         # Ensure device exists in devices table first
         with self.conn:
             self.conn.execute(
-                "INSERT OR IGNORE INTO devices (device_id, anonymous_id, first_seen, last_seen, status) VALUES (?, ?, ?, ?, ?)",
-                (device_id, self._anonymize_id(device_id), now, now, "present")
+                """INSERT OR IGNORE INTO devices
+                   (device_id, anonymous_id, first_seen, last_seen, status)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (device_id, self._anonymize_id(device_id), now, now, "present"),
             )
-        
+
         # Extract vendor info
         # Use None for vendor_id to not interfere with foreign key constraints
         # The vendor ID should only be used internally for lookups
         vendor_id = None
         vendor_name = device_info.get("vendor_name")
         device_type = device_info.get("device_type")
-        
+
         # Get vendor info if not explicitly provided
         if vendor_name is None or device_type is None:
             v_name, d_type = self._get_vendor_info(vendor_id)
             vendor_name = vendor_name if vendor_name is not None else v_name
             device_type = device_type if device_type is not None else d_type
-        
+
         with self.conn:
             self.conn.execute(
                 """
@@ -212,16 +216,32 @@ class Database:
                     vendor_id,
                     device_info.get("model_number"),
                     json.dumps(device_info.get("service_uuids", [])),
-                    json.dumps({
-                        k: v.hex() if isinstance(v, bytes) else v
-                        for k, v in (device_info.get("manufacturer_data") or {}).items()
-                    }) if device_info.get("manufacturer_data") else None,
+                    (
+                        json.dumps(
+                            {
+                                k: v.hex() if isinstance(v, bytes) else v
+                                for k, v in (
+                                    device_info.get("manufacturer_data") or {}
+                                ).items()
+                            }
+                        )
+                        if device_info.get("manufacturer_data")
+                        else None
+                    ),
                     device_info.get("tx_power"),
                     device_info.get("appearance"),
-                    json.dumps({
-                        k: v.hex() if isinstance(v, bytes) else v
-                        for k, v in (device_info.get("service_data") or {}).items()
-                    }) if device_info.get("service_data") else None,
+                    (
+                        json.dumps(
+                            {
+                                k: v.hex() if isinstance(v, bytes) else v
+                                for k, v in (
+                                    device_info.get("service_data") or {}
+                                ).items()
+                            }
+                        )
+                        if device_info.get("service_data")
+                        else None
+                    ),
                     now,
                     now,
                 ),

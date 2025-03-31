@@ -1,201 +1,248 @@
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Any, Dict, List, Optional, TypedDict, Union
 
-from bluepy import btle
+# Use bleak for BLE scanning
+from bleak import BleakScanner as BleakScannerClient
+from bleak.backends.device import BLEDevice
+from bleak.backends.scanner import AdvertisementData
+from bleak.exc import BleakError
 
 from fablab_visitor_logger.config import Config, DeviceStatus
+from fablab_visitor_logger.database import Database  # Needed for type hint
 from fablab_visitor_logger.vendor import get_vendor
 
 
+# Keep DeviceData TypedDict, adjust fields based on bleak availability
 class DeviceData(TypedDict):
     mac_address: str
     rssi: int
     timestamp: str  # ISO format datetime string
     device_name: Optional[str]
     vendor: str
-    service_uuids: str  # Comma-separated string
-    manufacturer_data: Dict[str, str]
+    service_uuids: List[str]  # Use list instead of comma-separated string
+    manufacturer_data: Dict[Any, str]  # General key type (int expected from bleak)
     tx_power: Optional[int]
-    appearance: Optional[int]
-    service_data: Dict[str, str]
+    # Appearance is not directly available in Bleak AdvertisementData
+    service_data: Dict[Any, str]  # General key type (str expected from bleak)
 
 
 class BLEScanner:
+    """Handles scanning for BLE devices using Bleak."""
+
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
-        self.scanner = btle.Scanner()
+        # No scanner instance needed here, BleakScanner is used differently
 
-    def scan(self, duration: Optional[float] = None) -> List[DeviceData]:
-        """Scan for BLE devices and return their device data.
+    async def scan(self, duration: Optional[float] = None) -> List[DeviceData]:
+        """Scan for BLE devices asynchronously and return their device data.
 
         Args:
-            duration: Optional scan duration in seconds
+            duration: Scan duration in seconds. Defaults to Config.SCAN_INTERVAL.
 
         Returns:
-            List of device dictionaries with scan data
+            List of device dictionaries with scan data.
 
         Raises:
-            Exception: If scan fails
+            BleakError: If the scan fails due to BLE issues.
+            Exception: For other unexpected errors during processing.
         """
-        duration = duration or Config.SCAN_INTERVAL
+        scan_duration = (
+            duration if duration is not None else float(Config.SCAN_INTERVAL)
+        )
+        self.logger.debug(f"Starting BLE scan for {scan_duration:.1f} seconds...")
 
+        devices_found: List[DeviceData] = []
         try:
-            devices = []
-            for dev in self.scanner.scan(duration):
-                if dev.rssi < Config.RSSI_THRESHOLD:
+            # Use BleakScanner.discover(), requesting advertisement data
+            # It returns a dictionary: {address: (BLEDevice, AdvertisementData)}
+            print("[DEBUG] scanner.py: Before BleakScannerClient.discover") # DEBUG
+            discovered_results: Dict[str, tuple[BLEDevice, AdvertisementData]] = await BleakScannerClient.discover(
+                timeout=scan_duration, return_adv=True
+            )
+            print(f"[DEBUG] scanner.py: After BleakScannerClient.discover, found {len(discovered_results)} results") # DEBUG
+            self.logger.debug(
+                f"Bleak discovered {len(discovered_results)} devices raw."
+            )
+
+            # Iterate through the discovered devices and their advertisement data
+            for address, (device, ad_data) in discovered_results.items():
+                # Use RSSI from ad_data first, then device
+                # Handle cases where ad_data might be minimal
+                rssi = ad_data.rssi if ad_data.rssi is not None else device.rssi
+                if rssi < Config.RSSI_THRESHOLD:
+                    self.logger.debug(
+                        f"Device {device.address} RSSI {rssi} below threshold "
+                        f"{Config.RSSI_THRESHOLD}"
+                    )
                     continue
 
-                devices.append(self._create_device_data(dev))
-            return devices
+                try:
+                    # Pass both device and ad_data to helper
+                    devices_found.append(self._create_device_data(device, ad_data))
+                except Exception as e:
+                    self.logger.error(
+                        f"Failed to process device data for {device.address}: {e}",
+                        exc_info=True,
+                    )
 
+            self.logger.debug(
+                f"Processed {len(devices_found)} devices after filtering."
+            )
+            return devices_found
+
+        except BleakError as e:
+            self.logger.error(f"BLE scan failed with BleakError: {e}")
+            # Re-raise Bleak specific error for potentially different handling upstream
+            raise
         except Exception as e:
-            self.logger.error(f"BLE scan failed: {str(e)}")
-            raise Exception(f"BLE scan failed: {str(e)}")
+            self.logger.error(f"Unexpected error during BLE scan: {e}", exc_info=True)
+            # Wrap unexpected errors
+            raise Exception(f"Unexpected error during BLE scan: {e}") from e
 
+    # Update signature to accept both device and ad_data
     def _create_device_data(
-        self, dev: btle.ScanEntry
+        self, device: BLEDevice, ad_data: AdvertisementData
     ) -> DeviceData:
-        """Create standardized device data dictionary from scan entry."""
-        return {
-            "mac_address": dev.addr,
-            "rssi": dev.rssi,
-            "timestamp": datetime.now().isoformat(),
-            "device_name": dev.getValueText(
-                btle.ScanEntry.COMPLETE_LOCAL_NAME
-            ),
-            "vendor": get_vendor(dev.addr),
-            "service_uuids": ",".join(
-                str(uuid) for uuid in dev.scanData.get(0x07, [])
-            ),
-            "manufacturer_data": self._safe_convert_manufacturer_data(
-                dev.scanData.get(btle.ScanEntry.MANUFACTURER)
-            ),
-            "tx_power": dev.scanData.get(0x0A),
-            # 0x0A is TX_POWER_LEVEL
-            "appearance": dev.scanData.get(0x19),  # 0x19 is APPEARANCE
-            "service_data": self._safe_convert_service_data(
-                dev.scanData.get(0x16)
-            ),
-        }
+        """Create standardized device data dictionary from Bleak objects."""
 
-    def _safe_convert_manufacturer_data(
-        self, data: Union[Dict[int, bytes], bytes, None]
-    ) -> Dict[str, str]:
-        """Safely convert manufacturer data to serializable format."""
+        # Use RSSI directly from ad_data or device passed in
+        rssi = ad_data.rssi if ad_data.rssi is not None else device.rssi
+
+        # Convert manufacturer/service data safely
+        manufacturer_data_converted = self._safe_convert_bytes_dict(
+            ad_data.manufacturer_data
+        )
+        service_data_converted = self._safe_convert_bytes_dict(ad_data.service_data)
+
+        return DeviceData(
+            mac_address=device.address,
+            rssi=rssi,
+            timestamp=datetime.now().isoformat(),
+            device_name=ad_data.local_name or device.name,
+            vendor=get_vendor(device.address),
+            service_uuids=ad_data.service_uuids or [],
+            manufacturer_data=manufacturer_data_converted,
+            tx_power=ad_data.tx_power, # Use tx_power attribute
+            # Appearance not available
+            service_data=service_data_converted,
+        )
+
+    def _safe_convert_bytes_dict(
+        self, data: Optional[Dict[Union[int, str], bytes]]
+    ) -> Dict[Union[int, str], str]:
+        """Safely convert dict values from bytes to hex strings."""
         if not data:
             return {}
-
-        try:
-            if isinstance(data, dict):
-                # Only convert if values are bytes
-                if all(isinstance(v, bytes) for v in data.values()):
-                    return {str(k): v.hex() for k, v in data.items()}
-                return {}
-            elif isinstance(data, bytes):
-                return {"0": data.hex()}
-            return {}
-        except Exception:
-            return {}
-
-    def _safe_convert_service_data(
-        self, data: Union[Dict[str, bytes], bytes, None]
-    ) -> Dict[str, str]:
-        """Safely convert service data to serializable format."""
-        if not data:
-            return {}
-
-        try:
-            if isinstance(data, dict):
-                # Only convert if values are bytes
-                if all(isinstance(v, bytes) for v in data.values()):
-                    return {str(k): v.hex() for k, v in data.items()}
-                return {}
-            elif isinstance(data, bytes):
-                return {"0": data.hex()}
-            return {}
-        except Exception:
-            return {}
+        converted = {}
+        for key, value in data.items():
+            try:
+                if isinstance(value, bytes):
+                    converted[key] = value.hex()
+                # If not bytes, skip or log? For now, skip.
+            except Exception as e:
+                self.logger.warning(
+                    f"Could not convert value for key {key} to hex: {e}"
+                )
+        return converted
 
 
 class PresenceTracker:
-    def __init__(self, scanner, database):
+    """Tracks device presence based on scan results."""
+
+    # Add type hints for dependencies
+    def __init__(self, scanner: BLEScanner, database: Database):
         self.scanner = scanner
         self.db = database
         self.logger = logging.getLogger(__name__)
-        # Format: {mac: {'last_seen': datetime,
-        #               'missed_pings': int}}
-        self.device_states = {}
+        # Format: {mac: {'last_seen': datetime, 'missed_pings': int}}
+        self.device_states: Dict[str, Dict[str, Any]] = {}
 
-    def update_presence(self):
-        """Perform scan and update presence status for all devices"""
+    # Make method async as scanner.scan is now async
+    async def update_presence(self) -> int:
+        """Perform async scan and update presence status for all devices."""
+        self.logger.debug("Starting presence update cycle.")
         try:
-            devices = self.scanner.scan()
+            # Await the async scan
+            devices_seen_data: List[DeviceData] = await self.scanner.scan()
             current_time = datetime.now()
+            seen_macs = set()  # Optimize lookup
 
             # Update seen devices
-            for device in devices:
-                mac = device["mac_address"]
+            for device_data in devices_seen_data:
+                mac = device_data["mac_address"]
+                seen_macs.add(mac)
+
                 if mac in self.device_states:
                     self.device_states[mac]["missed_pings"] = 0
-                    self.device_states[mac]["last_seen"] = current_time
                 else:
-                    self.device_states[mac] = {
-                        "last_seen": current_time,
-                        "missed_pings": 0,
-                    }
+                    # New device detected
+                    self.logger.info(
+                        f"New device detected: {mac} "
+                        f"(Vendor: {device_data.get('vendor', 'Unknown')})"
+                    )
+                    self.device_states[mac] = {"missed_pings": 0}
+                self.device_states[mac]["last_seen"] = current_time
+
                 # Log presence and device info
-                self.db.log_presence(mac, DeviceStatus.PRESENT, device["rssi"])
-                device_info = {
-                    "device_name": device.get("device_name"),
-                    "device_type": "BLE",
-                    "vendor_name": self._get_vendor_name(mac),
-                    "model_number": None,
-                    "service_uuids": device.get("service_uuids", []),
-                    "manufacturer_data": device.get("manufacturer_data", {}),
-                    "tx_power": device.get("tx_power"),
-                    "appearance": device.get("appearance"),
-                    "service_data": device.get("service_data", {}),
+                # Use DeviceStatus enum correctly
+                self.db.log_presence(mac, DeviceStatus.PRESENT, device_data["rssi"])
+
+                # Prepare device_info dict for logging
+                # Use vendor info obtained during scan
+                device_info_to_log = {
+                    "device_name": device_data.get("device_name"),
+                    "device_type": "BLE",  # Keep simple for now
+                    "vendor_name": device_data.get(
+                        "vendor"
+                    ),  # Use vendor from scan data
+                    "model_number": None,  # Not available from scan
+                    "service_uuids": device_data.get("service_uuids", []),
+                    "manufacturer_data": device_data.get("manufacturer_data", {}),
+                    "tx_power": device_data.get("tx_power"),
+                    # "appearance": device_data.get("appearance"), # Not available
+                    "service_data": device_data.get("service_data", {}),
                 }
-                self.db.log_device_info(mac, device_info)
+                # Log device info (consider logging less frequently)
+                self.db.log_device_info(mac, device_info_to_log)
 
-            # Check for absent devices
-            for mac in list(self.device_states.keys()):
-                if mac not in [d["mac_address"] for d in devices]:
-                    self.device_states[mac]["missed_pings"] += 1
+            # Check for absent/departed devices (Optimized)
+            departed_macs = []
+            for mac, state in self.device_states.items():
+                if mac not in seen_macs:
+                    state["missed_pings"] += 1
+                    self.logger.debug(
+                        f"Device {mac} missed ping {state['missed_pings']}."
+                    )
 
-                    if (
-                        self.device_states[mac]["missed_pings"]
-                        >= Config.DEPARTURE_THRESHOLD
-                    ):
+                    if state["missed_pings"] >= Config.DEPARTURE_THRESHOLD:
+                        self.logger.info(f"Device {mac} marked as DEPARTED.")
                         self.db.log_presence(mac, DeviceStatus.DEPARTED)
-                        del self.device_states[mac]
-                    elif (
-                        self.device_states[mac]["missed_pings"]
-                        >= Config.PING_TIMEOUT
-                    ):
+                        departed_macs.append(mac)  # Mark for removal
+                    elif state["missed_pings"] >= Config.PING_TIMEOUT:
+                        self.logger.info(f"Device {mac} marked as ABSENT.")
                         self.db.log_presence(mac, DeviceStatus.ABSENT)
+                    # Else: still considered present until PING_TIMEOUT
 
-            return len(devices)
+            # Remove departed devices from state tracking
+            for mac in departed_macs:
+                del self.device_states[mac]
 
+            self.logger.debug(
+                f"Presence update cycle finished. Active devices in state: "
+                f"{len(self.device_states)}"
+            )
+            return len(devices_seen_data)  # Return count of devices seen in *this* scan
+
+        except BleakError as e:
+            self.logger.error(f"BLE scan failed during presence update: {e}")
+            # Decide how to handle scan failures - maybe return 0 or re-raise?
+            # For now, log and return 0 to allow main loop to continue.
+            return 0
         except Exception as e:
-            self.logger.error(f"Presence update failed: {str(e)}")
-            raise
+            self.logger.error(
+                f"Unexpected error during presence update: {e}", exc_info=True
+            )
+            raise  # Re-raise unexpected errors to be caught by main loop
 
-    def _get_vendor_name(self, mac_address):
-        """Get vendor name from MAC address OUI"""
-        try:
-            # First 3 bytes of MAC address are OUI
-            oui = mac_address[:8].upper().replace(":", "")
-
-            # Simple OUI lookup (would be better to use a proper OUI database)
-            vendor_map = {
-                "AABBCC": "Test Vendor",
-                "001CBF": "Apple",
-                "001D4F": "Samsung",
-                "0022F4": "Intel",
-            }
-
-            return vendor_map.get(oui, "Unknown")
-        except Exception:
-            return "Unknown"
+    # Removed redundant _get_vendor_name method

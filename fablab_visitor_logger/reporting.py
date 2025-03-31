@@ -24,7 +24,7 @@ class Reporter:
                 query += " WHERE d.status IN ('present', 'absent')"
             cursor.execute(query)
             rows = cursor.fetchall()
-            
+
             devices = []
             for row in rows:
                 device = {
@@ -33,7 +33,7 @@ class Reporter:
                     "status": row[2],
                     "device_name": row[3],
                     "vendor_name": row[4],
-                    "device_type": row[5]
+                    "device_type": row[5],
                 }
                 devices.append(device)
             return devices
@@ -51,28 +51,34 @@ class Reporter:
             cursor.execute("SELECT COUNT(*) FROM devices WHERE status = 'present'")
             stats["present_devices"] = cursor.fetchone()[0]
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT COUNT(*) FROM presence_logs
                 WHERE timestamp > datetime('now', '-1 day')
-            """)
+            """
+            )
             stats["recent_visits"] = cursor.fetchone()[0]
 
             # Vendor breakdown
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT vendor_name, COUNT(*) as count
                 FROM device_info
                 GROUP BY vendor_name
                 ORDER BY count DESC
-            """)
+            """
+            )
             stats["vendor_breakdown"] = dict(cursor.fetchall())
 
             # Device type breakdown
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT device_type, COUNT(*) as count
                 FROM device_info
                 GROUP BY device_type
                 ORDER BY count DESC
-            """)
+            """
+            )
             stats["type_breakdown"] = dict(cursor.fetchall())
 
         return stats
@@ -104,15 +110,17 @@ class Reporter:
 
         with open(output_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "device_id",
-                "timestamp",
-                "status",
-                "rssi",
-                "device_name",
-                "vendor_name",
-                "device_type"
-            ])
+            writer.writerow(
+                [
+                    "device_id",
+                    "timestamp",
+                    "status",
+                    "rssi",
+                    "device_name",
+                    "vendor_name",
+                    "device_type",
+                ]
+            )
             writer.writerows(data)
 
 
@@ -137,9 +145,7 @@ def main():
     )
 
     # Export command
-    export_parser = subparsers.add_parser(
-        "export-csv", help="Export data to CSV"
-    )
+    export_parser = subparsers.add_parser("export-csv", help="Export data to CSV")
     export_parser.add_argument("output_path", help="Path to output CSV file")
 
     args = parser.parse_args()
@@ -154,7 +160,7 @@ def main():
                     f"Status: {device['status']}",
                     f"Name: {device['device_name'] or 'Unknown'}",
                     f"Vendor: {device['vendor_name'] or 'Unknown'}",
-                    f"Type: {device['device_type'] or 'Unknown'}"
+                    f"Type: {device['device_type'] or 'Unknown'}",
                 ]
                 print(" | ".join(output))
 
@@ -163,13 +169,13 @@ def main():
             print(f"Total unique devices: {stats['total_devices']}")
             print(f"Currently present: {stats['present_devices']}")
             print(f"Visits in last 24h: {stats['recent_visits']}\n")
-            
+
             print("Vendor Breakdown:")
-            for vendor, count in stats['vendor_breakdown'].items():
+            for vendor, count in stats["vendor_breakdown"].items():
                 print(f"  {vendor or 'Unknown'}: {count}")
-                
+
             print("\nDevice Type Breakdown:")
-            for dev_type, count in stats['type_breakdown'].items():
+            for dev_type, count in stats["type_breakdown"].items():
                 print(f"  {dev_type or 'Unknown'}: {count}")
 
         elif args.command == "export-csv":

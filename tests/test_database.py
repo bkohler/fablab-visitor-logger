@@ -14,6 +14,7 @@ class TestDatabase:
 
         # Create real database instance to test schema initialization
         db = Database()
+        assert db.conn is not None  # Verify connection was established
 
         # Verify all tables were created
         calls = mock_conn.executescript.call_args[0][0]
@@ -21,7 +22,7 @@ class TestDatabase:
             "devices",
             "presence_logs",
             "occupancy_aggregates",
-            "device_info"
+            "device_info",
         ]
         for table in required_tables:
             assert f"CREATE TABLE IF NOT EXISTS {table}" in calls
@@ -47,7 +48,7 @@ class TestDatabase:
         mock_config.ANONYMIZE_DEVICES = True
         db = Database()
         db.log_presence("AA:BB:CC:DD:EE:FF", DeviceStatus.PRESENT, -70)
-        
+
         # Test with anonymization off
         mock_config.ANONYMIZE_DEVICES = False
         db.log_presence("AA:BB:CC:DD:EE:FF", DeviceStatus.PRESENT, -70)
@@ -95,7 +96,7 @@ class TestDatabase:
         """Test logging device information with BLE characteristics"""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
-        
+
         test_time = datetime(2025, 3, 27, 12, 0, 0)
         mock_datetime.now.return_value = test_time
 
@@ -106,10 +107,10 @@ class TestDatabase:
             "vendor_name": "Test Vendor",
             "model_number": "12345",
             "service_uuids": ["0000180a-0000-1000-8000-00805f9b34fb"],
-            "manufacturer_data": {0xFFFF: b'test'},
+            "manufacturer_data": {0xFFFF: b"test"},
             "tx_power": -70,
             "appearance": 0,
-            "service_data": {"0000180a-0000-1000-8000-00805f9b34fb": b'test'}
+            "service_data": {"0000180a-0000-1000-8000-00805f9b34fb": b"test"},
         }
         db.log_device_info("AA:BB:CC:DD:EE:FF", device_info)
 
@@ -117,24 +118,26 @@ class TestDatabase:
         call_args = mock_conn.execute.call_args[0]
         sql = call_args[0]
         args = call_args[1]
-        
+
         # Check key components of the SQL query
         assert "INSERT INTO device_info" in sql
         assert "VALUES" in sql
         assert "ON CONFLICT" in sql
-        
+
         # Verify all parameters are passed correctly
         assert len(args) == 13
         assert args[0] == "AA:BB:CC:DD:EE:FF"  # device_id
         assert args[1] == "Test Device"  # device_name
         assert args[2] == "Test Type"  # device_type
         assert args[3] == "Test Vendor"  # vendor_name
-        assert args[4] == None  # vendor_id
+        assert args[4] is None  # vendor_id
         assert args[5] == "12345"  # model_number
-        assert args[6] == '["0000180a-0000-1000-8000-00805f9b34fb"]'  # service_uuids
-        assert args[7] == '{"65535": "74657374"}'  # manufacturer_data (hex encoded)
+        assert args[6] == ('["0000180a-0000-1000-8000-00805f9b34fb"]')  # service_uuids
+        assert args[7] == ('{"65535": "74657374"}')  # manufacturer_data (hex encoded)
         assert args[8] == -70  # tx_power
         assert args[9] == 0  # appearance
-        assert args[10] == '{"0000180a-0000-1000-8000-00805f9b34fb": "74657374"}'  # service_data (hex encoded)
+        assert (
+            args[10] == '{"0000180a-0000-1000-8000-00805f9b34fb": "74657374"}'
+        )  # service_data (hex encoded)
         assert isinstance(args[11], datetime)  # first_detected
         assert isinstance(args[12], datetime)  # last_detected

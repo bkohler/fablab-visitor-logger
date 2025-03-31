@@ -102,7 +102,7 @@ def test_cli_list_devices(mock_reporter, capsys):
             "status": "present",
             "device_name": "Test Device",
             "vendor_name": "Test Vendor",
-            "device_type": "Test Type"
+            "device_type": "Test Type",
         }
     ]
 
@@ -112,7 +112,12 @@ def test_cli_list_devices(mock_reporter, capsys):
         reporting.main()
 
     captured = capsys.readouterr()
-    assert "ID: test1 | Status: present | Name: Test Device | Vendor: Test Vendor | Type: Test Type" in captured.out
+    assert (
+        "ID: test1 | Status: present | "
+        "Name: Test Device | "
+        "Vendor: Test Vendor | "
+        "Type: Test Type" in captured.out
+    )
 
 
 @patch("fablab_visitor_logger.reporting.Reporter")
@@ -122,7 +127,7 @@ def test_cli_stats(mock_reporter, capsys):
         "present_devices": 2,
         "recent_visits": 10,
         "vendor_breakdown": {"Apple": 2, "Samsung": 1},
-        "type_breakdown": {"Phone": 3, "Tablet": 1}
+        "type_breakdown": {"Phone": 3, "Tablet": 1},
     }
 
     from fablab_visitor_logger import reporting

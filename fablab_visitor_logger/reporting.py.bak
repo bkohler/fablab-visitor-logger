@@ -23,7 +23,7 @@ class Reporter:
             if active_only:
                 query += " WHERE d.status IN ('present', 'absent')"
             cursor.execute(query)
-            
+
             devices = []
             for row in cursor.fetchall():
                 device = {
@@ -162,11 +162,11 @@ def main():
             print(f"Total unique devices: {stats['total_devices']}")
             print(f"Currently present: {stats['present_devices']}")
             print(f"Visits in last 24h: {stats['recent_visits']}\n")
-            
+
             print("Vendor Breakdown:")
             for vendor, count in stats['vendor_breakdown'].items():
                 print(f"  {vendor or 'Unknown'}: {count}")
-                
+
             print("\nDevice Type Breakdown:")
             for dev_type, count in stats['type_breakdown'].items():
                 print(f"  {dev_type or 'Unknown'}: {count}")
