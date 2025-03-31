@@ -1,3 +1,5 @@
+"""Tests for the BLEScanner class."""
+
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -12,7 +14,7 @@ from fablab_visitor_logger.scanner import BLEScanner
 
 @pytest.fixture
 def mock_advertisement_data_valid() -> AdvertisementData:
-    """Creates a mock AdvertisementData object with typical valid data."""
+    """Create a mock AdvertisementData object with typical valid data."""
     # Provide dummy values for required positional args tx_power and platform_data
     return AdvertisementData(
         local_name="Test Device",
@@ -20,14 +22,14 @@ def mock_advertisement_data_valid() -> AdvertisementData:
         service_uuids=["0000180a-0000-1000-8000-00805f9b34fb"],
         service_data={"0000180d-0000-1000-8000-00805f9b34fb": b"test_serv"},
         rssi=-50,
-        tx_power=-20, # Dummy value, bleak calculates this internally usually
-        platform_data=(), # Dummy value
+        tx_power=-20,  # Dummy value, bleak calculates this internally usually
+        platform_data=(),  # Dummy value
     )
 
 
 @pytest.fixture
 def mock_ble_device_valid(mock_advertisement_data_valid) -> BLEDevice:
-    """Creates a mock BLEDevice with valid AdvertisementData."""
+    """Create a mock BLEDevice with valid AdvertisementData."""
     device = BLEDevice(
         address="AA:BB:CC:DD:EE:FF",
         name="Test Device",
@@ -40,7 +42,7 @@ def mock_ble_device_valid(mock_advertisement_data_valid) -> BLEDevice:
 
 @pytest.fixture
 def mock_advertisement_data_invalid() -> AdvertisementData:
-    """Creates mock AdvertisementData with data that might cause conversion issues."""
+    """Create mock AdvertisementData with data that might cause conversion issues."""
     # Note: Bleak's parsing is generally robust, so "invalid" here means data
     # that our _safe_convert methods might need to handle (like empty bytes).
     # Provide dummy values for required positional args tx_power and platform_data
@@ -48,16 +50,16 @@ def mock_advertisement_data_invalid() -> AdvertisementData:
         local_name="Invalid Device",
         manufacturer_data={0xAAAA: b""},  # Empty bytes
         service_uuids=[],
-        service_data={"0000180f-0000-1000-8000-00805f9b34fb": b""}, # Empty bytes
+        service_data={"0000180f-0000-1000-8000-00805f9b34fb": b""},  # Empty bytes
         rssi=-60,
-        tx_power=-127, # Dummy value
-        platform_data=(), # Dummy value
+        tx_power=-127,  # Dummy value
+        platform_data=(),  # Dummy value
     )
 
 
 @pytest.fixture
 def mock_ble_device_invalid(mock_advertisement_data_invalid) -> BLEDevice:
-    """Creates a mock BLEDevice with potentially problematic AdvertisementData."""
+    """Create a mock BLEDevice with potentially problematic AdvertisementData."""
     device = BLEDevice(
         address="11:22:33:44:55:66",
         name="Invalid Device",
@@ -67,8 +69,11 @@ def mock_ble_device_invalid(mock_advertisement_data_invalid) -> BLEDevice:
     # In tests, we'll simulate discover returning (device, ad_data) tuples
     return device
 
+    # --- Test Class ---
 
-# --- Test Class ---
+    """Test suite for the BLEScanner class."""
+
+    """Test suite for the BLEScanner class."""
 
 
 # Using a class for structure, but could also be separate functions
@@ -78,12 +83,19 @@ class TestBLEScanner:
     @patch("fablab_visitor_logger.scanner.BleakScannerClient", new_callable=AsyncMock)
     # Use standard fixture injection (pass fixture names as args)
     async def test_scan_with_valid_data(
-        self, mock_bleak_scanner, mock_get_vendor, mock_ble_device_valid, mock_advertisement_data_valid
+        self,
+        mock_bleak_scanner,
+        mock_get_vendor,
+        mock_ble_device_valid,
+        mock_advertisement_data_valid,
     ):
         """Test scanning returns correctly formatted data using Bleak."""
         # mock_advertisement_data_valid is now the object returned by the fixture
         mock_bleak_scanner.discover.return_value = {
-            mock_ble_device_valid.address: (mock_ble_device_valid, mock_advertisement_data_valid)
+            mock_ble_device_valid.address: (
+                mock_ble_device_valid,
+                mock_advertisement_data_valid,
+            )
         }
 
         # Instantiate our scanner (which should use BleakScanner internally)
@@ -115,12 +127,19 @@ class TestBLEScanner:
     @patch("fablab_visitor_logger.scanner.BleakScannerClient", new_callable=AsyncMock)
     # Use standard fixture injection
     async def test_scan_handles_potentially_problematic_data(
-        self, mock_bleak_scanner, mock_get_vendor, mock_ble_device_invalid, mock_advertisement_data_invalid
+        self,
+        mock_bleak_scanner,
+        mock_get_vendor,
+        mock_ble_device_invalid,
+        mock_advertisement_data_invalid,
     ):
         """Test scanning handles data like empty byte strings."""
         # mock_advertisement_data_invalid is now the object returned by the fixture
         mock_bleak_scanner.discover.return_value = {
-             mock_ble_device_invalid.address: (mock_ble_device_invalid, mock_advertisement_data_invalid)
+            mock_ble_device_invalid.address: (
+                mock_ble_device_invalid,
+                mock_advertisement_data_invalid,
+            )
         }
 
         scanner = BLEScanner()
@@ -136,7 +155,7 @@ class TestBLEScanner:
         assert dev_data["service_uuids"] == []
         # Key should be integer 43690
         assert dev_data["manufacturer_data"] == {43690: ""}
-        assert dev_data["tx_power"] == -127 # Correct assertion for tx_power
+        assert dev_data["tx_power"] == -127  # Correct assertion for tx_power
         # assert dev_data["appearance"] is None # Appearance not handled
         assert dev_data["service_data"] == {"0000180f-0000-1000-8000-00805f9b34fb": ""}
 
@@ -152,26 +171,37 @@ class TestBLEScanner:
         mock_get_vendor,
         mock_ble_device_valid,
         mock_ble_device_invalid,
-        mock_advertisement_data_valid, # Fixture provides the object
-        mock_advertisement_data_invalid # Fixture provides the object
+        mock_advertisement_data_valid,  # Fixture provides the object
+        mock_advertisement_data_invalid,  # Fixture provides the object
     ):
         """Test RSSI threshold filtering using Bleak."""
         # Create new AdvertisementData instances with modified RSSI for the test
         # Use the objects provided by the fixtures
         ad_data_valid_mod = AdvertisementData(
-            local_name=mock_advertisement_data_valid.local_name, manufacturer_data=mock_advertisement_data_valid.manufacturer_data,
-            service_data=mock_advertisement_data_valid.service_data, service_uuids=mock_advertisement_data_valid.service_uuids,
-            rssi=-50, tx_power=mock_advertisement_data_valid.tx_power, platform_data=mock_advertisement_data_valid.platform_data
+            local_name=mock_advertisement_data_valid.local_name,
+            manufacturer_data=mock_advertisement_data_valid.manufacturer_data,
+            service_data=mock_advertisement_data_valid.service_data,
+            service_uuids=mock_advertisement_data_valid.service_uuids,
+            rssi=-50,
+            tx_power=mock_advertisement_data_valid.tx_power,
+            platform_data=mock_advertisement_data_valid.platform_data,
         )
         ad_data_invalid_mod = AdvertisementData(
-            local_name=mock_advertisement_data_invalid.local_name, manufacturer_data=mock_advertisement_data_invalid.manufacturer_data,
-            service_data=mock_advertisement_data_invalid.service_data, service_uuids=mock_advertisement_data_invalid.service_uuids,
-            rssi=-70, tx_power=mock_advertisement_data_invalid.tx_power, platform_data=mock_advertisement_data_invalid.platform_data
+            local_name=mock_advertisement_data_invalid.local_name,
+            manufacturer_data=mock_advertisement_data_invalid.manufacturer_data,
+            service_data=mock_advertisement_data_invalid.service_data,
+            service_uuids=mock_advertisement_data_invalid.service_uuids,
+            rssi=-70,
+            tx_power=mock_advertisement_data_invalid.tx_power,
+            platform_data=mock_advertisement_data_invalid.platform_data,
         )
 
         mock_bleak_scanner.discover.return_value = {
             mock_ble_device_valid.address: (mock_ble_device_valid, ad_data_valid_mod),
-            mock_ble_device_invalid.address: (mock_ble_device_invalid, ad_data_invalid_mod),
+            mock_ble_device_invalid.address: (
+                mock_ble_device_invalid,
+                ad_data_invalid_mod,
+            ),
         }
 
         # Set test RSSI threshold
@@ -188,8 +218,14 @@ class TestBLEScanner:
             Config.RSSI_THRESHOLD = -75  # Both should pass
             # Need to reset mock return value if discover is called again
             mock_bleak_scanner.discover.return_value = {
-                mock_ble_device_valid.address: (mock_ble_device_valid, ad_data_valid_mod),
-                mock_ble_device_invalid.address: (mock_ble_device_invalid, ad_data_invalid_mod),
+                mock_ble_device_valid.address: (
+                    mock_ble_device_valid,
+                    ad_data_valid_mod,
+                ),
+                mock_ble_device_invalid.address: (
+                    mock_ble_device_invalid,
+                    ad_data_invalid_mod,
+                ),
             }
             devices = await scanner.scan(duration=0.1)
             assert len(devices) == 2
@@ -209,7 +245,9 @@ class TestBLEScanner:
 
         # Use pytest.raises to assert that the wrapped exception is raised
         # Match the actual exception message from scanner.py
-        with pytest.raises(Exception, match="Unexpected error during BLE scan: BLEak scan failed!"):
+        with pytest.raises(
+            Exception, match="Unexpected error during BLE scan: BLEak scan failed!"
+        ):
             await scanner.scan(duration=0.1)
 
         # Verify discover was called
@@ -219,7 +257,9 @@ class TestBLEScanner:
     @patch("fablab_visitor_logger.scanner.BleakScannerClient", new_callable=AsyncMock)
     async def test_scan_empty_results(self, mock_bleak_scanner):
         """Test scanning when no devices are found."""
-        mock_bleak_scanner.discover.return_value = {}  # Simulate no devices found (dict)
+        mock_bleak_scanner.discover.return_value = (
+            {}
+        )  # Simulate no devices found (dict)
 
         scanner = BLEScanner()
         devices = await scanner.scan(duration=0.1)

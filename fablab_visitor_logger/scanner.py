@@ -1,6 +1,8 @@
+"""Handles BLE scanning and presence tracking logic."""
+
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
 # Use bleak for BLE scanning
 from bleak import BleakScanner as BleakScannerClient
@@ -15,6 +17,8 @@ from fablab_visitor_logger.vendor import get_vendor
 
 # Keep DeviceData TypedDict, adjust fields based on bleak availability
 class DeviceData(TypedDict):
+    """TypedDict representing standardized BLE device scan data."""
+
     mac_address: str
     rssi: int
     timestamp: str  # ISO format datetime string
@@ -31,6 +35,8 @@ class BLEScanner:
     """Handles scanning for BLE devices using Bleak."""
 
     def __init__(self) -> None:
+        """Initialize the BLE Scanner."""
+
         self.logger = logging.getLogger(__name__)
         # No scanner instance needed here, BleakScanner is used differently
 
@@ -56,17 +62,22 @@ class BLEScanner:
         try:
             # Use BleakScanner.discover(), requesting advertisement data
             # It returns a dictionary: {address: (BLEDevice, AdvertisementData)}
-            print("[DEBUG] scanner.py: Before BleakScannerClient.discover") # DEBUG
-            discovered_results: Dict[str, tuple[BLEDevice, AdvertisementData]] = await BleakScannerClient.discover(
+            print("[DEBUG] scanner.py: Before BleakScannerClient.discover")  # DEBUG
+            discovered_results: Dict[
+                str, tuple[BLEDevice, AdvertisementData]
+            ] = await BleakScannerClient.discover(
                 timeout=scan_duration, return_adv=True
             )
-            print(f"[DEBUG] scanner.py: After BleakScannerClient.discover, found {len(discovered_results)} results") # DEBUG
+            print(
+                "[DEBUG] scanner.py: After BleakScannerClient.discover, "
+                f"found {len(discovered_results)} results"
+            )  # DEBUG
             self.logger.debug(
                 f"Bleak discovered {len(discovered_results)} devices raw."
             )
 
             # Iterate through the discovered devices and their advertisement data
-            for address, (device, ad_data) in discovered_results.items():
+            for _address, (device, ad_data) in discovered_results.items():
                 # Use RSSI from ad_data first, then device
                 # Handle cases where ad_data might be minimal
                 rssi = ad_data.rssi if ad_data.rssi is not None else device.rssi
@@ -105,16 +116,16 @@ class BLEScanner:
         self, device: BLEDevice, ad_data: AdvertisementData
     ) -> DeviceData:
         """Create standardized device data dictionary from Bleak objects."""
-
         # Use RSSI directly from ad_data or device passed in
         rssi = ad_data.rssi if ad_data.rssi is not None else device.rssi
 
         # Convert manufacturer/service data safely
         manufacturer_data_converted = self._safe_convert_bytes_dict(
-            ad_data.manufacturer_data
+            cast(Optional[Dict[Union[int, str], bytes]], ad_data.manufacturer_data)
         )
-        service_data_converted = self._safe_convert_bytes_dict(ad_data.service_data)
-
+        service_data_converted = self._safe_convert_bytes_dict(
+            cast(Optional[Dict[Union[int, str], bytes]], ad_data.service_data)
+        )
         return DeviceData(
             mac_address=device.address,
             rssi=rssi,
@@ -123,7 +134,7 @@ class BLEScanner:
             vendor=get_vendor(device.address),
             service_uuids=ad_data.service_uuids or [],
             manufacturer_data=manufacturer_data_converted,
-            tx_power=ad_data.tx_power, # Use tx_power attribute
+            tx_power=ad_data.tx_power,  # Use tx_power attribute
             # Appearance not available
             service_data=service_data_converted,
         )
@@ -154,6 +165,13 @@ class PresenceTracker:
     def __init__(self, scanner: BLEScanner, database: Database):
         self.scanner = scanner
         self.db = database
+        """Initialize the Presence Tracker.
+
+        Args:
+            scanner: The BLEScanner instance to use for scanning.
+            database: The Database instance for logging presence.
+        """
+
         self.logger = logging.getLogger(__name__)
         # Format: {mac: {'last_seen': datetime, 'missed_pings': int}}
         self.device_states: Dict[str, Dict[str, Any]] = {}

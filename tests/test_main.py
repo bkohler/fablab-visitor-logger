@@ -31,7 +31,7 @@ def mock_dependencies():
         # Configure the mock class to return the desired instance when called
         mock_tracker_instance = AsyncMock()
         # Set up the update_presence method to return a value when awaited
-        mock_tracker_instance.update_presence = AsyncMock(return_value=3)
+        mock_tracker_instance.update_presence.return_value = 3
         mock_tracker.return_value = mock_tracker_instance
 
         # Set a default scan interval for tests
@@ -105,9 +105,7 @@ async def test_run_loop_error_handling(mock_asyncio_sleep, mock_dependencies):
 
     # Create a new tracker mock with error behavior
     mock_tracker_instance = AsyncMock()
-    mock_tracker_instance.update_presence = AsyncMock(
-        side_effect=Exception("Scan error")
-    )
+    mock_tracker_instance.update_presence.side_effect = Exception("Scan error")
 
     # Inject mocks into app instance
     app = PresenceMonitoringApp(
@@ -147,7 +145,10 @@ async def test_main_scan_mode(mock_asyncio_run, mock_parse_args, mock_app_class)
     mock_args.mode = "scan"
     mock_parse_args.return_value = mock_args
 
-    mock_app_instance = AsyncMock()  # run is async
+    # Create a mock instance for the app using MagicMock
+    mock_app_instance = MagicMock(spec=PresenceMonitoringApp)
+    # Explicitly make its 'run' method an AsyncMock
+    mock_app_instance.run = AsyncMock()
     mock_app_class.return_value = mock_app_instance
 
     # Run main
@@ -163,14 +164,15 @@ async def test_main_scan_mode(mock_asyncio_run, mock_parse_args, mock_app_class)
     mock_app_class.assert_called_once()  # App was instantiated
     # Check that asyncio.run was called with the app's run method
     # Avoid comparing coroutine objects directly
-    assert mock_asyncio_run.call_count == 1
+    # Check that app.run() was called (which returns a coroutine)
+    mock_app_instance.run.assert_called_once()
+
+    # Check that asyncio.run was called once with the coroutine returned by app.run()
+    mock_asyncio_run.assert_called_once()
     call_args, _ = mock_asyncio_run.call_args
-    # Check if the first argument is a coroutine
     import asyncio
 
-    assert asyncio.iscoroutine(call_args[0])
-    # Optionally check the coroutine's function name if needed
-    # assert call_args[0].__qualname__ == 'PresenceMonitoringApp.run'
+    assert asyncio.iscoroutine(call_args[0])  # Verify it received a coroutine
 
 
 # --- Report Mode Tests (remain synchronous) ---

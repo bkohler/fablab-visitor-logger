@@ -1,3 +1,5 @@
+"""Main application entry point for the FabLab Visitor Logger."""
+
 import argparse
 import asyncio  # Import asyncio
 import logging
@@ -14,7 +16,7 @@ from fablab_visitor_logger.scanner import BLEScanner, PresenceTracker
 
 
 def parse_args():
-    """Parse command line arguments"""
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="FabLab Visitor Logger")
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
@@ -46,15 +48,30 @@ def parse_args():
 
 
 class PresenceMonitoringApp:
-    def __init__(self):
+    """Manages the presence monitoring application lifecycle."""
+
+    # Modify __init__ to allow dependency injection for testing
+    def __init__(self, scanner=None, db=None, tracker=None):
+        """Initialize the Presence Monitoring Application.
+
+
+        Args:
+            scanner: Optional BLEScanner instance for dependency injection.
+            db: Optional Database instance for dependency injection.
+            tracker: Optional PresenceTracker instance for dependency injection.
+        """
         Config.setup_logging()
         self.logger = logging.getLogger(__name__)
         self.running = False
-        # Dependencies could be injected here in a future refactor
-        self.scanner = BLEScanner()
-        self.db = Database()
-        self.tracker = PresenceTracker(self.scanner, self.db)
-        self._shutdown_event = asyncio.Event()  # Use asyncio Event for shutdown
+        # Use injected dependencies if provided, otherwise create defaults
+        self.scanner = scanner if scanner is not None else BLEScanner()
+        self.db = db if db is not None else Database()
+        # Use injected tracker if provided, otherwise create default
+        # Ensure tracker uses the correct scanner and db instances if created internally
+        self.tracker = (
+            tracker if tracker is not None else PresenceTracker(self.scanner, self.db)
+        )
+        self._shutdown_event = asyncio.Event()
 
     def _handle_signal(self, signum, frame):
         self.logger.info(f"Received signal {signum}, initiating shutdown...")
@@ -66,6 +83,8 @@ class PresenceMonitoringApp:
     # Make run method asynchronous
     async def run(self):
         # Setup signal handlers within the async context if possible,
+        """Run the main asynchronous loop for presence monitoring."""
+
         # or ensure they correctly interact with the asyncio event loop.
         # Using loop.add_signal_handler is generally preferred in async code.
         loop = asyncio.get_running_loop()
@@ -84,9 +103,14 @@ class PresenceMonitoringApp:
 
                 try:
                     # Await the async presence update
-                    print("[DEBUG] main.py: Before await self.tracker.update_presence()") # DEBUG
+                    print(
+                        "[DEBUG] main.py: Before await self.tracker.update_presence()"
+                    )  # DEBUG
                     device_count = await self.tracker.update_presence()
-                    print(f"[DEBUG] main.py: After await self.tracker.update_presence(), count={device_count}") # DEBUG
+                    print(
+                        "[DEBUG] main.py: After await "
+                        f"self.tracker.update_presence(), count={device_count}"
+                    )  # DEBUG
                     self.logger.info(
                         f"Async scan complete, detected {device_count} devices"
                     )
@@ -114,9 +138,13 @@ class PresenceMonitoringApp:
                         f"Sleeping asynchronously for {sleep_time:.2f} seconds"
                     )
                     # Simpler sleep - rely on the loop condition and signal handler
-                    print(f"[DEBUG] main.py: Before await asyncio.sleep({sleep_time})") # DEBUG
+                    print(
+                        f"[DEBUG] main.py: Before await asyncio.sleep({sleep_time})"
+                    )  # DEBUG
                     await asyncio.sleep(sleep_time)
-                    print(f"[DEBUG] main.py: After await asyncio.sleep({sleep_time})") # DEBUG
+                    print(
+                        f"[DEBUG] main.py: After await asyncio.sleep({sleep_time})"
+                    )  # DEBUG
                 else:
                     self.logger.warning(
                         f"Scan iteration took longer ({elapsed:.2f}s) than interval "
@@ -134,7 +162,7 @@ class PresenceMonitoringApp:
 
 
 def main():
-    """Main entry point for CLI"""
+    """Run the main entry point for the CLI."""
     args = parse_args()
 
     if args.mode == "scan":
